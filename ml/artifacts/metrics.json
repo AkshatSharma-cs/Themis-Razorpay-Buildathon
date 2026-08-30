@@ -1,0 +1,389 @@
+{
+  "dataset": {
+    "regime_a_rows": 5000,
+    "regime_a_positive_rate": 0.0298,
+    "fit_rows": 3226,
+    "dev_rows": 757,
+    "test_rows": 1017
+  },
+  "null_model_sanity_check_auroc": 0.5,
+  "model_comparison_test": {
+    "lightgbm_calibrated": {
+      "auroc": 0.8102474619289339,
+      "pr_auc": 0.4596148504358664
+    },
+    "logistic_regression": {
+      "auroc": 0.8402918781725889,
+      "pr_auc": 0.5074067131977987
+    },
+    "rules_only_baseline": {
+      "auroc": 0.6738578680203047,
+      "pr_auc": 0.06392531779033539
+    }
+  },
+  "calibration": {
+    "brier_before": 0.04629280888732056,
+    "brier_after": 0.026149885751937517,
+    "ece_before": 0.14693198219456452,
+    "ece_after": 0.022862058297357993,
+    "reliability_diagram": {
+      "before": {
+        "mean_predicted": [
+          0.09039689838698912,
+          0.10872667963710385,
+          0.1194812284372962,
+          0.1307741015166232,
+          0.14292188503024333,
+          0.15508499400897147,
+          0.16813642820664193,
+          0.18514947820387803,
+          0.21652747674078396,
+          0.46050918293714843
+        ],
+        "frac_positive": [
+          0.0,
+          0.029411764705882353,
+          0.009900990099009901,
+          0.00980392156862745,
+          0.0196078431372549,
+          0.0,
+          0.00980392156862745,
+          0.009900990099009901,
+          0.0196078431372549,
+          0.20588235294117646
+        ]
+      },
+      "after": {
+        "mean_predicted": [
+          0.02824959150314425,
+          0.029740195371317005,
+          0.03065270582658079,
+          0.03164109924942372,
+          0.03273816715868696,
+          0.03387454897057093,
+          0.03513478835912957,
+          0.03684840291400221,
+          0.0402602368473284,
+          0.09394016284013235
+        ],
+        "frac_positive": [
+          0.0,
+          0.029411764705882353,
+          0.009900990099009901,
+          0.00980392156862745,
+          0.0196078431372549,
+          0.0,
+          0.00980392156862745,
+          0.009900990099009901,
+          0.0196078431372549,
+          0.20588235294117646
+        ]
+      }
+    }
+  },
+  "cost_ledger": {
+    "fp_cost_rupees": 150.0,
+    "assumed_recovery_prob": 0.12
+  },
+  "threshold_selection": {
+    "selected_threshold": 0.16,
+    "selected_on": "dev_set",
+    "dev_cost_at_threshold": 15654.220799999997
+  },
+  "test_metrics_at_threshold": {
+    "threshold": 0.16,
+    "tp": 13,
+    "fp": 7,
+    "fn": 19,
+    "tn": 978,
+    "precision": 0.65,
+    "recall": 0.40625,
+    "fpr": 0.007106598984771574
+  },
+  "shap_top10_global_importance": {
+    "hour_of_day": 0.17966627286221665,
+    "amount": 0.11396961224060163,
+    "payee_name_match_score": 0.1129211007256636,
+    "log_amount": 0.07432118069107295,
+    "payee_account_age_days": 0.07426493646758453,
+    "instrument_type_code": 0.06985887637473806,
+    "time_since_last_txn_hours": 0.06280674820782699,
+    "amount_p95_ratio": 0.05485940629951086,
+    "user_mean_amt_90d": 0.05170742478658745,
+    "payee_novelty_days": 0.04493766631734283
+  },
+  "error_cases": {
+    "false_negatives": [
+      {
+        "txn_id": "TXNREGIME_A0001956",
+        "user_id": 690,
+        "payee_id": 133,
+        "timestamp": "2026-06-30 03:51:00.881800",
+        "amount": 528.43,
+        "y_prob": 0.031390303534205695,
+        "fn_cost_rupees": 465.0184
+      },
+      {
+        "txn_id": "TXNREGIME_A0004967",
+        "user_id": 337,
+        "payee_id": 125,
+        "timestamp": "2026-06-30 20:46:50.448599",
+        "amount": 426.08,
+        "y_prob": 0.0555662058319717,
+        "fn_cost_rupees": 374.9504
+      },
+      {
+        "txn_id": "TXNREGIME_A0002619",
+        "user_id": 32,
+        "payee_id": 417,
+        "timestamp": "2026-07-01 02:50:41.046440",
+        "amount": 2113.45,
+        "y_prob": 0.09500496298388503,
+        "fn_cost_rupees": 1859.8359999999998
+      },
+      {
+        "txn_id": "TXNREGIME_A0004339",
+        "user_id": 516,
+        "payee_id": 300,
+        "timestamp": "2026-07-01 09:01:54.802550",
+        "amount": 272.26,
+        "y_prob": 0.037346361695105273,
+        "fn_cost_rupees": 239.5888
+      },
+      {
+        "txn_id": "TXNREGIME_A0001270",
+        "user_id": 575,
+        "payee_id": 15,
+        "timestamp": "2026-07-01 11:57:58.727178",
+        "amount": 75.83,
+        "y_prob": 0.030241642228116594,
+        "fn_cost_rupees": 66.7304
+      },
+      {
+        "txn_id": "TXNREGIME_A0004631",
+        "user_id": 445,
+        "payee_id": 414,
+        "timestamp": "2026-07-02 15:28:24.438906",
+        "amount": 399.73,
+        "y_prob": 0.07337768262498155,
+        "fn_cost_rupees": 351.7624
+      },
+      {
+        "txn_id": "TXNREGIME_A0000609",
+        "user_id": 762,
+        "payee_id": 213,
+        "timestamp": "2026-07-06 12:52:36.098808",
+        "amount": 1027.17,
+        "y_prob": 0.04176064050508953,
+        "fn_cost_rupees": 903.9096000000001
+      },
+      {
+        "txn_id": "TXNREGIME_A0001519",
+        "user_id": 108,
+        "payee_id": 191,
+        "timestamp": "2026-07-07 12:23:33.500485",
+        "amount": 431.04,
+        "y_prob": 0.06650576307557232,
+        "fn_cost_rupees": 379.3152
+      },
+      {
+        "txn_id": "TXNREGIME_A0000994",
+        "user_id": 417,
+        "payee_id": 408,
+        "timestamp": "2026-07-08 06:09:20.801322",
+        "amount": 75.3,
+        "y_prob": 0.05821335585397133,
+        "fn_cost_rupees": 66.264
+      },
+      {
+        "txn_id": "TXNREGIME_A0003237",
+        "user_id": 590,
+        "payee_id": 18,
+        "timestamp": "2026-07-09 04:55:10.256387",
+        "amount": 302.9,
+        "y_prob": 0.030504815412204393,
+        "fn_cost_rupees": 266.55199999999996
+      },
+      {
+        "txn_id": "TXNREGIME_A0004290",
+        "user_id": 620,
+        "payee_id": 65,
+        "timestamp": "2026-07-10 05:58:13.052184",
+        "amount": 313.61,
+        "y_prob": 0.03015474825884699,
+        "fn_cost_rupees": 275.9768
+      },
+      {
+        "txn_id": "TXNREGIME_A0000940",
+        "user_id": 162,
+        "payee_id": 289,
+        "timestamp": "2026-07-13 08:30:46.497750",
+        "amount": 108.71,
+        "y_prob": 0.03260234597059869,
+        "fn_cost_rupees": 95.6648
+      },
+      {
+        "txn_id": "TXNREGIME_A0000850",
+        "user_id": 677,
+        "payee_id": 286,
+        "timestamp": "2026-07-13 15:15:57.558011",
+        "amount": 2752.99,
+        "y_prob": 0.05011218692387653,
+        "fn_cost_rupees": 2422.6312
+      },
+      {
+        "txn_id": "TXNREGIME_A0001672",
+        "user_id": 337,
+        "payee_id": 414,
+        "timestamp": "2026-07-14 22:51:36.589637",
+        "amount": 1538.45,
+        "y_prob": 0.059597598248410655,
+        "fn_cost_rupees": 1353.836
+      },
+      {
+        "txn_id": "TXNREGIME_A0000066",
+        "user_id": 687,
+        "payee_id": 123,
+        "timestamp": "2026-07-17 21:36:42.756673",
+        "amount": 1112.62,
+        "y_prob": 0.030092716059816962,
+        "fn_cost_rupees": 979.1055999999999
+      },
+      {
+        "txn_id": "TXNREGIME_A0000125",
+        "user_id": 790,
+        "payee_id": 190,
+        "timestamp": "2026-07-21 06:58:09.442500",
+        "amount": 929.01,
+        "y_prob": 0.03238401667639655,
+        "fn_cost_rupees": 817.5288
+      },
+      {
+        "txn_id": "TXNREGIME_A0004341",
+        "user_id": 550,
+        "payee_id": 48,
+        "timestamp": "2026-07-21 13:48:33.521009",
+        "amount": 953.24,
+        "y_prob": 0.034704243736959496,
+        "fn_cost_rupees": 838.8512000000001
+      },
+      {
+        "txn_id": "TXNREGIME_A0000890",
+        "user_id": 140,
+        "payee_id": 408,
+        "timestamp": "2026-07-27 21:13:17.956679",
+        "amount": 909.58,
+        "y_prob": 0.03860048331636551,
+        "fn_cost_rupees": 800.4304000000001
+      },
+      {
+        "txn_id": "TXNREGIME_A0003989",
+        "user_id": 114,
+        "payee_id": 134,
+        "timestamp": "2026-07-28 14:17:28.976057",
+        "amount": 2741.87,
+        "y_prob": 0.08235862803924453,
+        "fn_cost_rupees": 2412.8456
+      }
+    ],
+    "false_positives": [
+      {
+        "txn_id": "TXNREGIME_A0003560",
+        "user_id": 620,
+        "payee_id": 414,
+        "timestamp": "2026-07-02 17:30:06.300487",
+        "amount": 100000.0,
+        "y_prob": 0.24695716237221604,
+        "delay_cost_rupees": 150.0
+      },
+      {
+        "txn_id": "TXNREGIME_A0003948",
+        "user_id": 32,
+        "payee_id": 414,
+        "timestamp": "2026-07-10 06:35:04.135428",
+        "amount": 15645.41,
+        "y_prob": 0.2368769701469208,
+        "delay_cost_rupees": 150.0
+      },
+      {
+        "txn_id": "TXNREGIME_A0002304",
+        "user_id": 720,
+        "payee_id": 3,
+        "timestamp": "2026-07-11 08:54:40.671083",
+        "amount": 50000.0,
+        "y_prob": 0.17384892841822402,
+        "delay_cost_rupees": 150.0
+      },
+      {
+        "txn_id": "TXNREGIME_A0004635",
+        "user_id": 298,
+        "payee_id": 73,
+        "timestamp": "2026-07-19 20:39:43.383875",
+        "amount": 12830.65,
+        "y_prob": 0.17358303687284113,
+        "delay_cost_rupees": 150.0
+      },
+      {
+        "txn_id": "TXNREGIME_A0001685",
+        "user_id": 417,
+        "payee_id": 327,
+        "timestamp": "2026-07-22 09:56:29.227362",
+        "amount": 9623.39,
+        "y_prob": 0.1731218219417537,
+        "delay_cost_rupees": 150.0
+      },
+      {
+        "txn_id": "TXNREGIME_A0004866",
+        "user_id": 845,
+        "payee_id": 417,
+        "timestamp": "2026-07-26 02:57:52.198144",
+        "amount": 50000.0,
+        "y_prob": 0.24814408715970604,
+        "delay_cost_rupees": 150.0
+      },
+      {
+        "txn_id": "TXNREGIME_A0002536",
+        "user_id": 530,
+        "payee_id": 76,
+        "timestamp": "2026-07-28 23:58:33.600000",
+        "amount": 10374.82,
+        "y_prob": 0.18177587099180328,
+        "delay_cost_rupees": 150.0
+      }
+    ]
+  },
+  "cross_process_holdout_regime_b": {
+    "rows": 1500,
+    "positive_rate": 0.019333333333333334,
+    "auroc": 0.6794580276143369,
+    "pr_auc": 0.17107297272886307,
+    "metrics_at_frozen_threshold": {
+      "threshold": 0.16,
+      "tp": 6,
+      "fp": 39,
+      "fn": 23,
+      "tn": 1432,
+      "precision": 0.13333333333333333,
+      "recall": 0.20689655172413793,
+      "fpr": 0.026512576478585997
+    }
+  },
+  "self_audit_expected_ranges": {
+    "within_process_auroc": [
+      0.85,
+      0.92
+    ],
+    "cross_process_auroc": [
+      0.75,
+      0.85
+    ],
+    "recall_at_cost_threshold": [
+      0.55,
+      0.75
+    ],
+    "fpr_at_cost_threshold": [
+      0.01,
+      0.03
+    ]
+  }
+}
