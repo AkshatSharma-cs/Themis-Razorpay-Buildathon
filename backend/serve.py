@@ -353,7 +353,7 @@ bundle = ModelBundle()
 # --------------------------------------------------------------------------- #
 
 app = FastAPI(
-    title="Sentinel — Defense-only UPI Scam Detector",
+    title="Themis — Defense-only UPI Scam Detector",
     description=(
         "Track 2: authorized-but-deceived UPI scam detection. This service "
         "only ever recommends a bounded cooling-off or advisory notice — it "

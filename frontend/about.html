@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sentinel — Architecture & Decision Boundary</title>
+  <title>Themis — About & Decision Boundary</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,7 +23,7 @@
           <i class="fa-solid fa-shield-halved"></i>
         </div>
         <div>
-          <span class="brand-name gold-gradient-text">Sentinel</span>
+          <span class="brand-name gold-gradient-text">Themis</span>
           <span class="brand-tag">UPI Fraud Defense</span>
         </div>
       </a>
@@ -35,7 +35,7 @@
       <ul class="nav-links" id="navLinks">
         <li><a href="index.html" class="nav-link">Home</a></li>
         <li><a href="dashboard.html" class="nav-link">Console</a></li>
-        <li><a href="about.html" class="nav-link active">Architecture</a></li>
+        <li><a href="about.html" class="nav-link active">About</a></li>
       </ul>
 
       <div class="nav-status" id="navHealthPill">
@@ -48,10 +48,10 @@
   <main class="main-content main-content--arch">
     <div class="container container-narrow">
 
-      <!-- Architecture Header -->
+      <!-- About Header -->
       <header class="arch-header animate-fade-in">
         <h1 class="arch-title font-display">
-          System <span class="gold-gradient-text">Architecture</span>
+          About <span class="gold-gradient-text">Themis</span>
         </h1>
       </header>
 
@@ -66,11 +66,11 @@
           </p>
         </article>
 
-        <!-- Block 2: What Sentinel sees -->
+        <!-- Block 2: What Themis sees -->
         <article class="arch-card glass-panel animate-fade-in delay-2">
-          <h2 class="arch-card-title font-display">What Sentinel sees</h2>
+          <h2 class="arch-card-title font-display">What Themis sees</h2>
           <p class="arch-card-text">
-            Sentinel adds signals a bank's systems don't have: whether a call was active during payment, whether a screen was being shared, whether an OTP was read aloud. These live at the app layer, not the bank's switch.
+            Themis adds signals a bank's systems don't have: whether a call was active during payment, whether a screen was being shared, whether an OTP was read aloud. These live at the app layer, not the bank's switch.
           </p>
         </article>
 
@@ -86,7 +86,7 @@
         <article class="arch-card glass-panel animate-fade-in delay-4">
           <h2 class="arch-card-title font-display">What it's allowed to do</h2>
           <p class="arch-card-text">
-            A single Python invariant enforces this: Sentinel can only ever issue a bounded cooling-off delay or an advisory notice. It cannot block a payment, reverse funds, or touch another account — that boundary is checked in code on every decision, not just documented.
+            A single Python invariant enforces this: Themis can only ever issue a bounded cooling-off delay or an advisory notice. It cannot block a payment, reverse funds, or touch another account — that boundary is checked in code on every decision, not just documented.
           </p>
         </article>
 
