@@ -30,21 +30,25 @@ from dataclasses import dataclass, asdict
 from datetime import datetime, timedelta, timezone
 from typing import Any, Literal, Optional
 
+
 import joblib
 import numpy as np
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 import backend.audit_db as audit_db
-from narration import get_narration
+from backend.narration import get_narration
+
+from dotenv import load_dotenv
+load_dotenv()
 
 # --------------------------------------------------------------------------- #
 # Configuration
 # --------------------------------------------------------------------------- #
 
 MODEL_PATH = os.environ.get("SENTINEL_MODEL_PATH", "model.joblib")
-METRICS_PATH = os.environ.get("SENTINEL_METRICS_PATH", "metrics.json")
-FEATURE_ORDER_PATH = os.environ.get("SENTINEL_FEATURES_PATH", "feature_order.json")
 
 COOLING_OFF_DAILY_CAP = int(os.environ.get("SENTINEL_DAILY_CAP", "3"))
 DEFAULT_COOLING_OFF_HOURS = float(os.environ.get("SENTINEL_COOLING_OFF_HOURS", "2"))
@@ -120,16 +124,44 @@ class TransactionPayload(BaseModel):
     tx_id: Optional[str] = Field(default=None, description="If omitted, one is generated")
     payer_vpa: str
     payee_vpa: str
+
+    # Core amount / user-history features
     amount: float
-    is_new_payee: bool = False
-    call_overlap: bool = False
-    device_change: bool = False
-    txn_hour_unusual: bool = False
-    sim_swap_recent: bool = False
-    payee_reported_count: int = 0
-    historical_avg_amount: float = 0.0
-    # Anything the trained model needs that isn't listed explicitly above
-    # can be passed here; the feature builder pulls from both.
+    user_tenure_days: float = 365.0
+    user_prior_txn_count_90d: float = 20.0
+    user_mean_amt_90d: float = 500.0
+    user_p95_amt_90d: float = 2000.0
+    user_max_amt_90d: float = 3000.0
+
+    # Device / reinstall
+    fresh_device_flag: bool = False
+    days_since_reinstall: float = 365.0
+
+    # Payee-side
+    payee_novelty_days: float = 365.0
+    user_payee_txn_count_90d: float = 5.0
+    payee_velocity_24h: float = 0.0
+    payee_account_age_days: float = 365.0
+    payee_name_match_score: float = 1.0
+
+    # Session/context — the merchant-side differentiator
+    call_overlap_flag: bool = False
+    call_minutes: float = 0.0
+    screen_share_flag: bool = False
+    otp_share_flag: bool = False
+    session_language_mismatch_flag: bool = False
+
+    # Transaction shape
+    hour_of_day: int = 12
+    day_of_week: int = 2
+    time_since_last_txn_hours: float = 24.0
+    user_txn_count_last_1h: float = 0.0
+    user_txn_count_last_24h: float = 2.0
+
+    # Categorical — passed as strings, encoded server-side via category_levels
+    shopping_category: str = "other"
+    instrument_type: str = "upi_p2p"
+
     extra_features: dict[str, float] = Field(default_factory=dict)
 
 
@@ -192,108 +224,130 @@ class _DummyModel:
 
 class ModelBundle:
     def __init__(self):
-        self.model = None
-        self.metrics: dict = {}
-        self.feature_order: list[str] = []
+        self.lgb_model = None
+        self.platt_calibrator = None
+        self.feature_columns: list[str] = []
+        self.category_levels: dict = {}
+        self.cost_threshold: float = 0.5
         self.explainer = None
         self.is_dummy = False
         self.model_version = "unloaded"
 
     def load(self):
-        # --- feature order (used to build a stable X vector for the model) ---
-        if os.path.exists(FEATURE_ORDER_PATH):
-            with open(FEATURE_ORDER_PATH) as f:
-                self.feature_order = json.load(f)
-        else:
-            self.feature_order = [
-                "amount", "is_new_payee", "call_overlap", "device_change",
-                "txn_hour_unusual", "sim_swap_recent", "payee_reported_count",
-                "historical_avg_amount",
-            ]
-
-        # --- metrics.json: must supply the cost-optimal threshold ---
-        if os.path.exists(METRICS_PATH):
-            with open(METRICS_PATH) as f:
-                self.metrics = json.load(f)
-        else:
-            self.metrics = {"threshold": 0.5, "note": "metrics.json missing — using default"}
-
-        # --- model artifact ---
         if os.path.exists(MODEL_PATH):
-            self.model = joblib.load(MODEL_PATH)
-            self.model_version = self.metrics.get("model_version", "loaded")
+            bundle = joblib.load(MODEL_PATH)
+            self.lgb_model = bundle["lgb_model"]
+            self.platt_calibrator = bundle["platt_calibrator"]
+            self.feature_columns = bundle["feature_columns"]
+            self.category_levels = bundle["category_levels"]
+            self.cost_threshold = float(bundle["cost_threshold"])
+            self.model_version = "loaded"
             self.is_dummy = False
+
+            import shap
+            self.explainer = shap.TreeExplainer(self.lgb_model)
         else:
-            self.model = _DummyModel()
+            self.feature_columns = [
+                "amount", "is_new_payee", "call_overlap_flag",
+            ]
+            self.category_levels = {}
+            self.cost_threshold = 0.5
+            self.lgb_model = _DummyModel()
+            self.platt_calibrator = None
             self.model_version = "DUMMY_MODEL_NO_ARTIFACT_FOUND"
             self.is_dummy = True
-
-        # --- SHAP explainer (TreeExplainer works for LightGBM boosters) ---
-        try:
-            import shap
-            if not self.is_dummy:
-                self.explainer = shap.TreeExplainer(self.model)
-            else:
-                self.explainer = None
-        except Exception:
             self.explainer = None
 
     @property
     def threshold(self) -> float:
-        return float(self.metrics.get("threshold", 0.5))
+        return self.cost_threshold
+
+    def _encode_category(self, group: str, value: str) -> float:
+        levels = self.category_levels.get(group, {})
+        return float(levels.get(value, levels.get("__unknown__", 0)))
 
     def build_vector(self, payload: TransactionPayload) -> np.ndarray:
         base = {
+            "user_tenure_days": payload.user_tenure_days,
+            "user_prior_txn_count_90d": payload.user_prior_txn_count_90d,
+            "user_mean_amt_90d": payload.user_mean_amt_90d,
+            "user_p95_amt_90d": payload.user_p95_amt_90d,
+            "user_max_amt_90d": payload.user_max_amt_90d,
+            "fresh_device_flag": float(payload.fresh_device_flag),
+            "days_since_reinstall": payload.days_since_reinstall,
+            "payee_novelty_days": payload.payee_novelty_days,
+            "user_payee_txn_count_90d": payload.user_payee_txn_count_90d,
+            "payee_velocity_24h": payload.payee_velocity_24h,
+            "payee_account_age_days": payload.payee_account_age_days,
+            "payee_name_match_score": payload.payee_name_match_score,
+            "call_overlap_flag": float(payload.call_overlap_flag),
+            "call_minutes": payload.call_minutes,
+            "screen_share_flag": float(payload.screen_share_flag),
+            "otp_share_flag": float(payload.otp_share_flag),
+            "session_language_mismatch_flag": float(payload.session_language_mismatch_flag),
             "amount": payload.amount,
-            "is_new_payee": float(payload.is_new_payee),
-            "call_overlap": float(payload.call_overlap),
-            "device_change": float(payload.device_change),
-            "txn_hour_unusual": float(payload.txn_hour_unusual),
-            "sim_swap_recent": float(payload.sim_swap_recent),
-            "payee_reported_count": float(payload.payee_reported_count),
-            "historical_avg_amount": payload.historical_avg_amount,
+            "log_amount": float(np.log1p(payload.amount)),
+            "amount_p95_ratio": (
+                payload.amount / payload.user_p95_amt_90d
+                if payload.user_p95_amt_90d > 0 else 0.0
+            ),
+            "roundness_score": 1.0 if payload.amount % 1000 == 0 else 0.0,
+            "hour_of_day": float(payload.hour_of_day),
+            "day_of_week": float(payload.day_of_week),
+            "time_since_last_txn_hours": payload.time_since_last_txn_hours,
+            "user_txn_count_last_1h": payload.user_txn_count_last_1h,
+            "user_txn_count_last_24h": payload.user_txn_count_last_24h,
+            "shopping_category_code": self._encode_category(
+                "shopping_category", payload.shopping_category
+            ),
+            "instrument_type_code": self._encode_category(
+                "instrument_type", payload.instrument_type
+            ),
         }
         base.update(payload.extra_features)
-        row = [base.get(f, 0.0) for f in self.feature_order]
+        row = [base.get(f, 0.0) for f in self.feature_columns]
         return np.array([row], dtype=float)
 
     def score(self, payload: TransactionPayload) -> tuple[float, list[dict]]:
         X = self.build_vector(payload)
-        proba = float(self.model.predict_proba(X)[0, 1])
+
+        if self.is_dummy:
+            raw_proba = float(self.lgb_model.predict_proba(X)[0, 1])
+            calibrated_proba = raw_proba
+        else:
+            raw_proba = float(self.lgb_model.predict_proba(X)[0, 1])
+            # Platt scaling: the calibrator was fit on the raw LightGBM
+            # probability as its single input feature.
+            calibrated_proba = float(
+                self.platt_calibrator.predict_proba(
+                    np.array([[raw_proba]])
+                )[0, 1]
+            )
 
         top_features: list[dict] = []
         if self.explainer is not None:
             shap_values = self.explainer.shap_values(X)
-            # LightGBM binary classifiers via SHAP can return a list
-            # [neg_class_values, pos_class_values] or a single array
-            # depending on shap/lightgbm version — handle both.
             if isinstance(shap_values, list):
                 values = shap_values[1][0] if len(shap_values) > 1 else shap_values[0][0]
             else:
                 values = shap_values[0]
-            pairs = list(zip(self.feature_order, X[0], values))
+            pairs = list(zip(self.feature_columns, X[0], values))
             pairs.sort(key=lambda p: abs(p[2]), reverse=True)
             top_features = [
                 {"feature": name, "value": float(val), "contribution": float(contrib)}
                 for name, val, contrib in pairs[:3]
             ]
         else:
-            # No SHAP available (e.g. dummy model, or shap not installed):
-            # fall back to a naive "largest raw feature value" ranking so
-            # the API contract still returns something usable for the demo.
-            pairs = list(zip(self.feature_order, X[0]))
+            pairs = list(zip(self.feature_columns, X[0]))
             pairs.sort(key=lambda p: abs(p[1]), reverse=True)
             top_features = [
                 {"feature": name, "value": float(val), "contribution": 0.0}
                 for name, val in pairs[:3]
             ]
 
-        return proba, top_features
-
+        return calibrated_proba, top_features
 
 bundle = ModelBundle()
-
-
 # --------------------------------------------------------------------------- #
 # App
 # --------------------------------------------------------------------------- #
@@ -306,6 +360,14 @@ app = FastAPI(
         "never blocks, reverses, or acts on another party's account."
     ),
     version="0.1.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -322,6 +384,7 @@ def health():
         "model_version": bundle.model_version,
         "is_dummy_model": bundle.is_dummy,
         "threshold": bundle.threshold,
+        "n_features": len(bundle.feature_columns),
     }
 
 
@@ -532,6 +595,10 @@ def verify_audit_chain():
     raw sqlite3 and call it again to show ok flip to false.
     """
     return audit_db.verify_chain()
+
+
+if os.path.exists("frontend"):
+    app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
 
 
 if __name__ == "__main__":

@@ -27,6 +27,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Optional
+from backend.narration import get_narration
 
 DB_PATH = os.environ.get("SENTINEL_AUDIT_DB", "sentinel_audit.sqlite3")
 

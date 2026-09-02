@@ -1,0 +1,34 @@
+# --- never ship into the image ---
+.env
+*.env
+.git/
+.gitignore
+
+# --- local dev / cache cruft ---
+venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+
+# --- local-only artifacts ---
+audit_store.db
+sentinel_audit.sqlite3
+requirements_check.txt
+.agents/
+.claude/
+skills-lock.json
+
+# --- raw synthetic data: regenerable via ml/generate.py, not needed to
+# serve the API, and the *_full_latent.csv files specifically must never
+# ship anywhere downstream of ml/ (see latent_process.py's design note on
+# why the ground-truth C column is not supposed to be reachable by
+# anything outside the ml/ generation step) ---
+ml/data/
+data/
+*.csv
+
+# --- keep test files and docs out of the runtime image (optional; remove
+# these two lines if you want /docs-adjacent context inside the container) ---
+requirements-dev.txt
+tests/

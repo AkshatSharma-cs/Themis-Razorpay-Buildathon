@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sentinel — Architecture & Decision Boundary</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="ambient-glow ambient-gold-top"></div>
+  <div class="ambient-glow ambient-blue-bottom"></div>
+
+  <!-- Top Navigation Bar -->
+  <nav class="site-navbar">
+    <div class="nav-container">
+      <a href="index.html" class="brand-logo">
+        <div class="logo-shield-badge">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <div>
+          <span class="brand-name gold-gradient-text">Sentinel</span>
+          <span class="brand-tag">UPI Fraud Defense</span>
+        </div>
+      </a>
+
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html" class="nav-link">Home</a></li>
+        <li><a href="dashboard.html" class="nav-link">Console</a></li>
+        <li><a href="about.html" class="nav-link active">Architecture</a></li>
+      </ul>
+
+      <div class="nav-status" id="navHealthPill">
+        <span class="pulse-dot" id="navHealthDot"></span>
+        <span id="navHealthText">Checking backend...</span>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-content main-content--arch">
+    <div class="container container-narrow">
+
+      <!-- Architecture Header -->
+      <header class="arch-header animate-fade-in">
+        <h1 class="arch-title font-display">
+          System <span class="gold-gradient-text">Architecture</span>
+        </h1>
+      </header>
+
+      <!-- Four Concise Architectural Blocks -->
+      <div class="arch-cards-stack">
+
+        <!-- Block 1: The problem -->
+        <article class="arch-card glass-panel animate-fade-in delay-1">
+          <h2 class="arch-card-title font-display">The problem</h2>
+          <p class="arch-card-text">
+            Banks and payment apps mostly catch unauthorized fraud — a stolen password, a hacked account. They largely miss authorized-but-deceived fraud, where the real account holder is coerced into paying willingly. RBI now classifies these as fraud too, but the detection gap remains.
+          </p>
+        </article>
+
+        <!-- Block 2: What Sentinel sees -->
+        <article class="arch-card glass-panel animate-fade-in delay-2">
+          <h2 class="arch-card-title font-display">What Sentinel sees</h2>
+          <p class="arch-card-text">
+            Sentinel adds signals a bank's systems don't have: whether a call was active during payment, whether a screen was being shared, whether an OTP was read aloud. These live at the app layer, not the bank's switch.
+          </p>
+        </article>
+
+        <!-- Block 3: How it decides -->
+        <article class="arch-card glass-panel animate-fade-in delay-3">
+          <h2 class="arch-card-title font-display">How it decides</h2>
+          <p class="arch-card-text">
+            A LightGBM model, calibrated with Platt scaling, scores each transaction. The threshold is chosen by minimizing real cost — weighing the friction of a false alarm against the loss of a missed scam — not by chasing the highest accuracy number.
+          </p>
+        </article>
+
+        <!-- Block 4: What it's allowed to do -->
+        <article class="arch-card glass-panel animate-fade-in delay-4">
+          <h2 class="arch-card-title font-display">What it's allowed to do</h2>
+          <p class="arch-card-text">
+            A single Python invariant enforces this: Sentinel can only ever issue a bounded cooling-off delay or an advisory notice. It cannot block a payment, reverse funds, or touch another account — that boundary is checked in code on every decision, not just documented.
+          </p>
+        </article>
+
+      </div>
+
+      <!-- Single link below the blocks -->
+      <div class="arch-footer-link animate-fade-in delay-4">
+        <a href="https://github.com/AkshatSharma-cs/Sentinel-Razorpay-Buildathon" target="_blank" rel="noopener" class="arch-github-link">
+          Read the full technical writeup on GitHub &rarr;
+        </a>
+      </div>
+
+    </div>
+  </main>
+
+  <canvas id="wutheringCanvas"></canvas>
+  <script src="background.js"></script>
+
+  <script>
+    const navToggle = document.getElementById('navToggle');
+    const navLinks = document.getElementById('navLinks');
+    if (navToggle && navLinks) {
+      navToggle.addEventListener('click', () => navLinks.classList.toggle('active'));
+    }
+
+    // Health Status Check
+    (async function checkHealth() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const apiBase = urlParams.get('api') || sessionStorage.getItem('sentinel_api_base') || (window.location.port !== '5500' && window.location.port !== '3000' ? window.location.origin : 'http://localhost:8000');
+      const dot = document.getElementById('navHealthDot');
+      const text = document.getElementById('navHealthText');
+      const pill = document.getElementById('navHealthPill');
+
+      try {
+        const res = await fetch(`${apiBase}/health`, { method: 'GET' });
+        if (!res.ok) throw new Error('Health check failed');
+        const data = await res.json();
+        if (data.is_dummy_model === false) {
+          text.textContent = `Model loaded — ${data.n_features || 28} features`;
+          dot.className = 'pulse-dot';
+          pill.className = 'nav-status';
+        } else {
+          text.textContent = `Demo model loaded — ${data.n_features || 28} features`;
+          dot.className = 'pulse-dot';
+          pill.className = 'nav-status';
+        }
+      } catch (e) {
+        text.textContent = 'Backend unreachable';
+        dot.className = 'pulse-dot danger';
+        pill.className = 'nav-status offline';
+      }
+    })();
+  </script>
+</body>
+</html>
