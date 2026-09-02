@@ -276,7 +276,7 @@
 
       // 1. API Base Resolution
       const urlParams = new URLSearchParams(window.location.search);
-      const API_BASE = urlParams.get('api') || sessionStorage.getItem('sentinel_api_base') || (window.location.port !== '5500' && window.location.port !== '3000' ? window.location.origin : 'http://localhost:8000');
+      const API_BASE = urlParams.get('api') || sessionStorage.getItem('sentinel_api_base') || 'https://themis-razorpay-buildathon.onrender.com';
 
       // 2. Presets (Full 28-feature realistic payloads)
       const PRESETS = {

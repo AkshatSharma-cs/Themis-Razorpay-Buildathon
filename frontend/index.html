@@ -106,7 +106,7 @@
     // Health Status Check
     (async function checkHealth() {
       const urlParams = new URLSearchParams(window.location.search);
-      const apiBase = urlParams.get('api') || sessionStorage.getItem('sentinel_api_base') || (window.location.port !== '5500' && window.location.port !== '3000' ? window.location.origin : 'http://localhost:8000');
+      const apiBase = urlParams.get('api') || sessionStorage.getItem('sentinel_api_base') || 'https://themis-razorpay-buildathon.onrender.com';
       const dot = document.getElementById('navHealthDot');
       const text = document.getElementById('navHealthText');
       const pill = document.getElementById('navHealthPill');
