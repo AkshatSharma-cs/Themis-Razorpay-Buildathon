@@ -1,0 +1,1 @@
+window.SENTINEL_API_BASE = "https://themis-razorpay-buildathon.onrender.com";

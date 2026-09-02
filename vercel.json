@@ -1,0 +1,4 @@
+{
+  "buildCommand": "node scripts/inject-config.js",
+  "outputDirectory": "frontend"
+}
