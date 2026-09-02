@@ -1,17 +1,13 @@
 /**
- * app.js — Sentinel Modern Multi-Page Experience & Live Risk Engine Integration
+ * app.js — Themis Modern Multi-Page Experience & Live Risk Engine Integration
  */
-
 (function () {
     'use strict';
 
     // -------------------------------------------------------------------------
     // 1. STATE & CONSTANTS
     // -------------------------------------------------------------------------
-
-    const API_BASE = (window.location.protocol.startsWith('http') && window.location.port !== '5500' && window.location.port !== '3000') 
-        ? window.location.origin 
-        : 'http://localhost:7860';
+    const API_BASE = 'https://themis-razorpay-buildathon.onrender.com';
 
     const PRESETS = {
         mule: {
@@ -55,7 +51,6 @@
     // -------------------------------------------------------------------------
     // 2. PAGE NAVIGATION ROUTER
     // -------------------------------------------------------------------------
-
     window.switchPage = function (pageId) {
         document.querySelectorAll('.page-view').forEach(page => {
             page.classList.remove('active');
@@ -63,10 +58,8 @@
         document.querySelectorAll('.nav-link').forEach(link => {
             link.classList.remove('active');
         });
-
         const targetPage = document.getElementById(`page-${pageId}`);
         const targetNav = document.getElementById(`nav-${pageId}`);
-
         if (targetPage) {
             targetPage.classList.add('active');
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -79,23 +72,18 @@
     // -------------------------------------------------------------------------
     // 3. INTERACTIVE PARTICLE CANVAS BACKGROUND
     // -------------------------------------------------------------------------
-
     function initParticleCanvas() {
         const canvas = document.getElementById('bgCanvas');
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
-
         let width = canvas.width = window.innerWidth;
         let height = canvas.height = window.innerHeight;
-
         window.addEventListener('resize', () => {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
         });
-
         const particles = [];
         const particleCount = Math.min(Math.floor(window.innerWidth / 20), 45);
-
         for (let i = 0; i < particleCount; i++) {
             particles.push({
                 x: Math.random() * width,
@@ -106,26 +94,20 @@
                 alpha: Math.random() * 0.4 + 0.1
             });
         }
-
         function render() {
             ctx.clearRect(0, 0, width, height);
-
             for (let i = 0; i < particles.length; i++) {
                 const p = particles[i];
-
                 p.x += p.vx;
                 p.y += p.vy;
-
                 if (p.x < 0) p.x = width;
                 if (p.x > width) p.x = 0;
                 if (p.y < 0) p.y = height;
                 if (p.y > height) p.y = 0;
-
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
                 ctx.fillStyle = `rgba(14, 165, 233, ${p.alpha})`;
                 ctx.fill();
-
                 for (let j = i + 1; j < particles.length; j++) {
                     const p2 = particles[j];
                     const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
@@ -139,26 +121,21 @@
                     }
                 }
             }
-
             requestAnimationFrame(render);
         }
-
         render();
     }
 
     // -------------------------------------------------------------------------
     // 4. PRESETS & FORM HANDLING
     // -------------------------------------------------------------------------
-
     window.loadPreset = function (presetKey) {
         const p = PRESETS[presetKey];
         if (!p) return;
-
         document.querySelectorAll('.preset-chip').forEach(btn => btn.classList.remove('active'));
         if (event && event.currentTarget) {
             event.currentTarget.classList.add('active');
         }
-
         document.getElementById('form_payer').value = p.payer;
         document.getElementById('form_payee').value = p.payee;
         document.getElementById('form_amount').value = p.amount;
@@ -184,13 +161,15 @@
     // -------------------------------------------------------------------------
     // 5. LIVE DECISION & SCORING INTEGRATION
     // -------------------------------------------------------------------------
-
-    async function apiRequest(endpoint, body) {
-        const res = await fetch(`${API_BASE}${endpoint}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        });
+    async function apiRequest(endpoint, body, method = 'POST') {
+        const opts = {
+            method,
+            headers: { 'Content-Type': 'application/json' }
+        };
+        if (method !== 'GET') {
+            opts.body = JSON.stringify(body);
+        }
+        const res = await fetch(`${API_BASE}${endpoint}`, opts);
         if (!res.ok) {
             const err = await res.json().catch(() => ({}));
             throw new Error(err.detail || `HTTP ${res.status}`);
@@ -213,15 +192,14 @@
         try {
             const data = await apiRequest('/decision', payload);
             const probPct = (data.probability * 100).toFixed(1);
-
             probText.textContent = `${probPct}%`;
-            thText.textContent = data.threshold ? data.threshold.toFixed(3) : '0.584';
+            thText.textContent = data.threshold ? data.threshold.toFixed(3) : '—';
             fillBar.style.width = `${Math.min(Math.max(data.probability * 100, 0), 100)}%`;
 
             if (data.action_type === 'cooling_off') {
                 fillBar.className = 'gauge-bar-fill high-risk';
                 badge.className = 'verdict-pill-badge badge-cooling';
-                badge.innerHTML = '<i class="fas fa-clock"></i> <span>2.0H Cooling-Off Delay</span>';
+                badge.innerHTML = `<i class="fas fa-clock"></i> <span>${data.duration_hours}H Cooling-Off Delay</span>`;
             } else if (data.action_type === 'advisory_only') {
                 fillBar.className = 'gauge-bar-fill high-risk';
                 badge.className = 'verdict-pill-badge badge-advisory';
@@ -233,30 +211,16 @@
             }
 
             reasonCopy.textContent = data.narration || data.reason || 'Decision computed by LightGBM model.';
-
-            // Prepend row to table
             appendTransactionRow(data.tx_id, payload.amount, payload.payee_vpa, data.probability, data.action_type);
 
         } catch (err) {
-            // Offline demo fallback
-            const isHigh = payload.call_overlap_flag || payload.screen_share_flag || payload.amount > 20000;
-            const mockProb = isHigh ? 0.82 : 0.08;
-            probText.textContent = `${(mockProb * 100).toFixed(1)}%`;
-            fillBar.style.width = `${mockProb * 100}%`;
-
-            if (isHigh) {
-                fillBar.className = 'gauge-bar-fill high-risk';
-                badge.className = 'verdict-pill-badge badge-cooling';
-                badge.innerHTML = '<i class="fas fa-clock"></i> <span>2.0H Cooling-Off Delay</span>';
-                reasonCopy.textContent = 'Active call overlap and high amount exceed safety threshold. Cooling-off friction issued.';
-                appendTransactionRow('TXN-' + Math.floor(1000 + Math.random() * 9000), payload.amount, payload.payee_vpa, mockProb, 'cooling_off');
-            } else {
-                fillBar.className = 'gauge-bar-fill';
-                badge.className = 'verdict-pill-badge badge-safe';
-                badge.innerHTML = '<i class="fas fa-check-circle"></i> <span>Cleared (Nominal Flow)</span>';
-                reasonCopy.textContent = 'Transaction is within standard behavioral bounds. No delay recommended.';
-                appendTransactionRow('TXN-' + Math.floor(1000 + Math.random() * 9000), payload.amount, payload.payee_vpa, mockProb, 'none');
-            }
+            probText.textContent = 'ERROR';
+            fillBar.style.width = '0%';
+            fillBar.className = 'gauge-bar-fill';
+            badge.className = 'verdict-pill-badge badge-advisory';
+            badge.innerHTML = '<i class="fas fa-triangle-exclamation"></i> <span>Backend Unreachable</span>';
+            reasonCopy.textContent = `Could not reach the model: ${err.message}. Check that the backend is awake and the API URL is correct.`;
+            thText.textContent = '—';
         } finally {
             btn.disabled = false;
         }
@@ -275,27 +239,26 @@
             const data = await apiRequest('/score', payload);
             const probPct = (data.probability * 100).toFixed(1);
             probText.textContent = `${probPct}%`;
-            fillBar.style.width = `${probPct}%`;
+            fillBar.style.width = `${Math.min(Math.max(data.probability * 100, 0), 100)}%`;
+            fillBar.className = 'gauge-bar-fill';
             badge.className = 'verdict-pill-badge badge-safe';
             badge.innerHTML = '<i class="fas fa-calculator"></i> <span>Score Computed</span>';
             reasonCopy.textContent = `Raw LightGBM model score: ${(data.probability * 100).toFixed(2)}%`;
-        } catch (e) {
-            probText.textContent = '15.4%';
-            fillBar.style.width = '15.4%';
-            badge.className = 'verdict-pill-badge badge-safe';
-            badge.innerHTML = '<i class="fas fa-calculator"></i> <span>Score Computed</span>';
-            reasonCopy.textContent = 'Raw model score: 15.4%';
+        } catch (err) {
+            probText.textContent = 'ERROR';
+            fillBar.style.width = '0%';
+            badge.className = 'verdict-pill-badge badge-advisory';
+            badge.innerHTML = '<i class="fas fa-triangle-exclamation"></i> <span>Backend Unreachable</span>';
+            reasonCopy.textContent = `Could not reach the model: ${err.message}.`;
         }
     };
 
     function appendTransactionRow(txId, amount, payee, prob, actionType) {
         const tbody = document.getElementById('txnTableBody');
         if (!tbody) return;
-
         const tr = document.createElement('tr');
         let statusHtml = '<span class="status-tag safe">Safe</span>';
         let actionIcon = '<i class="fas fa-check" style="color: var(--success);"></i>';
-
         if (actionType === 'cooling_off') {
             statusHtml = '<span class="status-tag danger">Cooling-Off</span>';
             actionIcon = '<i class="fas fa-clock" style="color: var(--accent);"></i>';
@@ -303,7 +266,6 @@
             statusHtml = '<span class="status-tag flagged">Advisory</span>';
             actionIcon = '<i class="fas fa-triangle-exclamation" style="color: var(--warning);"></i>';
         }
-
         tr.innerHTML = `
             <td class="font-mono-val">#${txId.slice(0, 10)}</td>
             <td class="font-mono-val">₹${amount.toLocaleString('en-IN')}</td>
@@ -312,17 +274,21 @@
             <td>${statusHtml}</td>
             <td>${actionIcon}</td>
         `;
-
         tbody.insertBefore(tr, tbody.firstChild);
     }
 
     window.verifyAuditChain = async function () {
         try {
             const res = await fetch(`${API_BASE}/audit/verify/chain`);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data = await res.json();
-            alert(`✓ Tamper-Evident Audit Verification Passed:\nRows Checked: ${data.rows_checked}\nIntegrity: ${data.ok ? 'VALID (100% Intact)' : 'BROKEN'}`);
-        } catch (e) {
-            alert('✓ Audit Hash Chain: SHA-256 Ledger Integrity Verified (100% Intact)');
+            if (data.ok) {
+                alert(`✓ Tamper-Evident Audit Verification\n\nRows Checked: ${data.rows_checked}\nIntegrity: VALID — chain intact`);
+            } else {
+                alert(`✗ Tamper Detected\n\nRows Checked: ${data.rows_checked}\nFirst Broken Row: #${data.first_broken_row_id}\nReason: ${data.reason}`);
+            }
+        } catch (err) {
+            alert(`Could not verify audit chain — backend unreachable.\n\nError: ${err.message}`);
         }
     };
 
@@ -334,19 +300,22 @@
             const res = await fetch(`${API_BASE}/health`);
             if (res.ok) {
                 const data = await res.json();
-                healthDot.style.background = 'var(--success)';
-                healthText.textContent = `MODEL: ${data.model_version.toUpperCase()}`;
+                healthDot.style.background = data.is_dummy_model ? 'var(--warning)' : 'var(--success)';
+                healthText.textContent = data.is_dummy_model
+                    ? 'DUMMY MODEL — CHECK DEPLOY'
+                    : `MODEL: ${data.model_version.toUpperCase()} · ${data.n_features} FEATURES`;
+            } else {
+                throw new Error(`HTTP ${res.status}`);
             }
         } catch (e) {
             healthDot.style.background = 'var(--secondary)';
-            healthText.textContent = 'STANDBY // READY';
+            healthText.textContent = 'BACKEND UNREACHABLE';
         }
     }
 
     // -------------------------------------------------------------------------
     // 6. INIT
     // -------------------------------------------------------------------------
-
     function init() {
         initParticleCanvas();
         checkHealth();
@@ -358,5 +327,4 @@
     } else {
         init();
     }
-
 })();
