@@ -479,7 +479,9 @@
         return base;
       }
 
-      // 4. Health Check
+      // 4. Health Check with Auto-Retry for Render cold-starts
+      let healthRetryTimer = null;
+
       async function checkHealth() {
         const dot = document.getElementById('navHealthDot');
         const text = document.getElementById('navHealthText');
@@ -487,23 +489,34 @@
 
         try {
           const res = await fetch(`${API_BASE}/health`);
-          if (!res.ok) throw new Error('Unhealthy');
+          if (!res.ok) throw new Error('Unhealthy status ' + res.status);
           const data = await res.json();
           modelThreshold = data.threshold || 0.16;
-          document.getElementById('scoreCutoffText').textContent = `Cutoff: ${modelThreshold.toFixed(2)}`;
-          document.getElementById('gaugeCutoffLine').style.left = `${Math.min(modelThreshold * 100, 100)}%`;
+          
+          const cutoffEl = document.getElementById('scoreCutoffText');
+          if (cutoffEl) cutoffEl.textContent = `Cutoff: ${modelThreshold.toFixed(2)}`;
+          const gaugeLine = document.getElementById('gaugeCutoffLine');
+          if (gaugeLine) gaugeLine.style.left = `${Math.min(modelThreshold * 100, 100)}%`;
 
           if (data.is_dummy_model === false) {
             text.textContent = `Model loaded — ${data.n_features || 28} features`;
           } else {
-            text.textContent = `Demo model — ${data.n_features || 28} features`;
+            text.textContent = `Demo model loaded — ${data.n_features || 28} features`;
           }
           dot.className = 'pulse-dot';
           pill.className = 'nav-status';
+
+          // Clear fast retry on success; set quiet background check every 30s
+          if (healthRetryTimer) clearTimeout(healthRetryTimer);
+          healthRetryTimer = setTimeout(checkHealth, 30000);
         } catch (e) {
           text.textContent = 'Backend unreachable';
           dot.className = 'pulse-dot danger';
           pill.className = 'nav-status offline';
+
+          // Auto-retry in 4 seconds if Render was waking up from cold start
+          if (healthRetryTimer) clearTimeout(healthRetryTimer);
+          healthRetryTimer = setTimeout(checkHealth, 4000);
         }
       }
 
@@ -530,6 +543,9 @@
           const data = await res.json();
           currentDecision = data;
           renderResult(data);
+          
+          // Successful call confirms backend is reachable
+          checkHealth();
         } catch (err) {
           alert(`Inference failed: ${err.message}\nMake sure backend is running at ${API_BASE}`);
         } finally {
@@ -701,8 +717,8 @@
         }
       }
 
-      // 9. Event Listeners Setup
-      document.addEventListener('DOMContentLoaded', () => {
+      // 9. Initialization & Event Setup
+      function initApp() {
         syncPresetToForm('clean');
         checkHealth();
 
@@ -735,7 +751,13 @@
         // Audit controls
         document.getElementById('btnOpenAudit').addEventListener('click', openAuditTrail);
         document.getElementById('btnVerifyIntegrity').addEventListener('click', verifyIntegrity);
-      });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initApp);
+      } else {
+        initApp();
+      }
     })();
   </script>
 </body>

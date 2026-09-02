@@ -112,8 +112,9 @@
       navToggle.addEventListener('click', () => navLinks.classList.toggle('active'));
     }
 
-    // Health Status Check
-    (async function checkHealth() {
+    // Health Status Check with Auto-Retry
+    let healthTimer = null;
+    async function checkHealth() {
       const urlParams = new URLSearchParams(window.location.search);
       const apiBase = urlParams.get('api') || sessionStorage.getItem('sentinel_api_base') || 'https://themis-razorpay-buildathon.onrender.com';
       const dot = document.getElementById('navHealthDot');
@@ -126,19 +127,24 @@
         const data = await res.json();
         if (data.is_dummy_model === false) {
           text.textContent = `Model loaded — ${data.n_features || 28} features`;
-          dot.className = 'pulse-dot';
-          pill.className = 'nav-status';
         } else {
           text.textContent = `Demo model loaded — ${data.n_features || 28} features`;
-          dot.className = 'pulse-dot';
-          pill.className = 'nav-status';
         }
+        dot.className = 'pulse-dot';
+        pill.className = 'nav-status';
+
+        if (healthTimer) clearTimeout(healthTimer);
+        healthTimer = setTimeout(checkHealth, 30000);
       } catch (e) {
         text.textContent = 'Backend unreachable';
         dot.className = 'pulse-dot danger';
         pill.className = 'nav-status offline';
+
+        if (healthTimer) clearTimeout(healthTimer);
+        healthTimer = setTimeout(checkHealth, 4000);
       }
-    })();
+    }
+    checkHealth();
   </script>
 </body>
 </html>
