@@ -35,7 +35,7 @@
       <ul class="nav-links" id="navLinks">
         <li><a href="index.html" class="nav-link active">Home</a></li>
         <li><a href="dashboard.html" class="nav-link">Console</a></li>
-        <li><a href="about.html" class="nav-link">About</a></li>
+        <li><a href="about.html" class="nav-link">Help</a></li>
       </ul>
 
       <div class="nav-status" id="navHealthPill">
@@ -50,13 +50,13 @@
 
       <!-- Hero Block (Single prominent panel, generous padding) -->
       <section class="home-hero-panel glass-panel animate-fade-in">
-        <div class="hero-eyebrow">
+        <h1 class="hero-eyebrow">
           RAZORPAY AI BUILDATHON 2026 — TRACK 2: AI RISK MANAGER
-        </div>
-
-        <h1 class="hero-lock-title">
-          Catching scams the victim <span class="gold-gradient-text">authorized themselves</span>
         </h1>
+
+        <h2 class="hero-lock-title">
+          Catching scams the victim <span class="gold-gradient-text">authorized themselves</span>
+        </h2>
 
         <p class="hero-lock-subhead">
           Themis flags UPI payments made under active coercion — a scammer on the call, a screen-share session, a shared OTP — and adds a short, reversible delay before the money moves. It never blocks, reverses, or touches anyone else's account.
@@ -66,27 +66,32 @@
           <a href="dashboard.html" class="btn btn-gold btn-hero-primary">
             <span>Open the Live Console &rarr;</span>
           </a>
-          <a href="about.html" class="btn btn-ghost btn-hero-secondary">
-            <span>How it works</span>
-          </a>
         </div>
+
+        <a href="about.html" class="hero-help-link">
+          <i class="fa-regular fa-circle-question"></i>
+          <span>Help</span>
+        </a>
       </section>
 
-      <!-- Three-Fact Strip Below Hero (Clean 3-column text row, minimal decoration) -->
-      <section class="three-fact-strip animate-fade-in delay-1">
-        <div class="fact-col">
-          <div class="fact-headline gold-gradient-text">0.68–0.81 AUROC</div>
-          <p class="fact-desc">Reported honestly, on held-out data — not inflated</p>
+      <!-- Feature Cards Below Hero -->
+      <section class="feature-card-grid animate-fade-in delay-1">
+        <div class="feature-card">
+          <div class="feature-card-icon"><i class="fa-solid fa-phone-volume"></i></div>
+          <div class="feature-card-title">Spots pressure in the moment</div>
+          <p class="feature-card-copy">Sentinel looks for warning signs around a payment, such as an active phone call, screen sharing, OTP sharing, unusual timing, or a brand-new payee.</p>
         </div>
 
-        <div class="fact-col">
-          <div class="fact-headline gold-gradient-text">Defense-only, enforced in code</div>
-          <p class="fact-desc">A Python invariant rejects any action that isn't a bounded delay</p>
+        <div class="feature-card">
+          <div class="feature-card-icon"><i class="fa-solid fa-scale-balanced"></i></div>
+          <div class="feature-card-title">Explains every decision</div>
+          <p class="feature-card-copy">Each result includes a risk score and the strongest reasons behind it, so a reviewer can understand why a payment looks safe, suspicious, or pressured.</p>
         </div>
 
-        <div class="fact-col">
-          <div class="fact-headline gold-gradient-text">Tamper-evident by design</div>
-          <p class="fact-desc">Every decision is hash-chained — edit one row and verification fails, live</p>
+        <div class="feature-card">
+          <div class="feature-card-icon"><i class="fa-solid fa-hand-holding-heart"></i></div>
+          <div class="feature-card-title">Adds time, not force</div>
+          <p class="feature-card-copy">When risk is high, Sentinel can recommend a short cooling-off delay. It never blocks, reverses, or reaches into a customer's account.</p>
         </div>
       </section>
 

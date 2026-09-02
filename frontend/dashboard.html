@@ -35,7 +35,7 @@
       <ul class="nav-links" id="navLinks">
         <li><a href="index.html" class="nav-link">Home</a></li>
         <li><a href="dashboard.html" class="nav-link active">Console</a></li>
-        <li><a href="about.html" class="nav-link">About</a></li>
+        <li><a href="about.html" class="nav-link">Help</a></li>
       </ul>
 
       <div class="nav-status" id="navHealthPill">
@@ -54,7 +54,7 @@
         <!-- ── LEFT ZONE: RUN A SCENARIO ────────────────────────── -->
         <section class="console-zone console-zone--left glass-panel animate-fade-in">
           <div class="zone-header">
-            <h2 class="zone-title">Pick a case, or build your own</h2>
+            <h2 class="zone-title">Choose a preset fraud scenario or enter your own transaction</h2>
           </div>
 
           <!-- 2x2 Preset Cards Grid -->
@@ -62,45 +62,49 @@
             <!-- Card 1: Clean -->
             <div class="preset-card active" data-preset="clean">
               <div class="preset-tag tag-clean">CLEAN</div>
-              <div class="preset-card-title">Two-year regular, ₹850</div>
+              <div class="preset-card-title">A regular customer sends ₹850 to a grocery store they have paid many times before.</div>
             </div>
 
             <!-- Card 2: Coercion -->
             <div class="preset-card" data-preset="coercion">
               <div class="preset-tag tag-coercion">COERCION</div>
-              <div class="preset-card-title">Active call, OTP shared, ₹45,000</div>
+              <div class="preset-card-title">A customer is on a long call with a stranger while sending ₹45,000 to a brand-new payee.</div>
             </div>
 
             <!-- Card 3: Ambiguous -->
             <div class="preset-card" data-preset="ambiguous">
-              <div class="preset-tag tag-ambiguous">AMBIGUOUS</div>
-              <div class="preset-card-title">Fresh device, short call, ₹6,500</div>
+              <div class="preset-tag tag-ambiguous">REVIEW</div>
+              <div class="preset-card-title">A smaller ₹6,500 transfer happens late at night from a recently reinstalled device.</div>
             </div>
 
             <!-- Card 4: High-Value -->
             <div class="preset-card" data-preset="high_value">
               <div class="preset-tag tag-highvalue">HIGH-VALUE</div>
-              <div class="preset-card-title">3-year payee, ₹1,85,000</div>
+              <div class="preset-card-title">A large ₹1,85,000 transfer goes to a family payee with a long, trusted history.</div>
             </div>
           </div>
 
-          <p class="preset-footnote">
-            Each preset sends a full 28-feature payload to the live model — nothing here is simulated.
-          </p>
+          <div class="preset-info-row">
+            <span>Preset scenarios</span>
+            <button type="button" class="info-icon-btn" aria-label="Preset model detail">
+              <i class="fa-solid fa-circle-info"></i>
+              <span class="info-tooltip">Each preset sends a full 28-feature payload to the live model — nothing here is simulated.</span>
+            </button>
+          </div>
 
           <!-- Run Detection Button -->
-          <button id="btnRunDetection" class="btn btn-gold btn-run-detection">
-            <span>Run detection</span>
+          <button id="btnRunPresetDetection" class="btn btn-gold btn-run-detection">
+            <span>Run selected scenario</span>
           </button>
 
-          <!-- Expandable: Advanced Edit Raw Payload -->
-          <div class="advanced-toggle-wrapper">
-            <button type="button" id="btnToggleAdvanced" class="advanced-toggle-btn">
-              <i class="fa-solid fa-chevron-right" id="advancedChevron"></i>
-              <span>Advanced: edit raw payload</span>
-            </button>
+          <!-- Custom Case Payload Panel -->
+          <div class="custom-case-panel">
+            <div class="custom-case-header">
+              <h3>Custom Case</h3>
+              <p>Adjust the transaction details and run a separate detection.</p>
+            </div>
 
-            <div id="advancedPayloadSection" class="advanced-payload-body" style="display: none;">
+            <div id="advancedPayloadSection" class="advanced-payload-body">
               <div class="payload-fields-grid">
                 <div class="field-item">
                   <label>Payer VPA</label>
@@ -159,6 +163,10 @@
                 </label>
               </div>
             </div>
+
+            <button id="btnRunCustomDetection" class="btn btn-gold btn-custom-detection">
+              <span>Run custom detection</span>
+            </button>
           </div>
         </section>
 
@@ -244,6 +252,25 @@
 
       </div>
 
+      <!-- ── SMS SCAM CHECKER ─────────────────────────────────── -->
+      <section class="sms-panel glass-panel animate-fade-in delay-2">
+        <div class="zone-header">
+          <h2 class="zone-title">Check an incoming SMS for scam pressure</h2>
+        </div>
+        <div class="sms-grid">
+          <div class="sms-input-block">
+            <label for="smsText">Message text</label>
+            <textarea id="smsText" class="form-input sms-textarea" rows="5">Dear customer, your account will be blocked. To keep it active, share the OTP sent to your number immediately or call 1800-XXX-XXXX. - Bank Security Team</textarea>
+            <button id="btnCheckSms" class="btn btn-gold btn-sms-check">
+              <span>Check message</span>
+            </button>
+          </div>
+          <div id="smsResultBox" class="sms-result-box">
+            <div class="sms-result-empty">Paste an SMS and check it to see the fraud-risk readout.</div>
+          </div>
+        </div>
+      </section>
+
       <!-- ── AUDIT PANEL (Collapsed / Triggered by Link) ───────── -->
       <section id="auditPanelSection" class="audit-panel-bottom glass-panel animate-fade-in" style="display: none;">
         <div class="zone-header audit-header-row">
@@ -282,7 +309,7 @@
       const PRESETS = {
         clean: {
           tag: "CLEAN",
-          title: "Two-year regular, ₹850",
+          title: "A regular customer sends ₹850 to a grocery store they have paid many times before.",
           payload: {
             payer_vpa: "anand.sharma@okaxis",
             payee_vpa: "kirana.store.blr@upi",
@@ -315,7 +342,7 @@
         },
         coercion: {
           tag: "COERCION",
-          title: "Active call, OTP shared, ₹45,000",
+          title: "A customer is on a long call with a stranger while sending ₹45,000 to a brand-new payee.",
           payload: {
             payer_vpa: "sunita.patel@okhdfcbank",
             payee_vpa: "cyber_sec_clearance@paytm",
@@ -347,8 +374,8 @@
           }
         },
         ambiguous: {
-          tag: "AMBIGUOUS",
-          title: "Fresh device, short call, ₹6,500",
+          tag: "REVIEW",
+          title: "A smaller ₹6,500 transfer happens late at night from a recently reinstalled device.",
           payload: {
             payer_vpa: "vikram.sen@okaxis",
             payee_vpa: "quick_services_portal@ybl",
@@ -381,7 +408,7 @@
         },
         high_value: {
           tag: "HIGH-VALUE",
-          title: "3-year payee, ₹1,85,000",
+          title: "A large ₹1,85,000 transfer goes to a family payee with a long, trusted history.",
           payload: {
             payer_vpa: "rohit.kumar@icici",
             payee_vpa: "priya.nair.family@okhdfcbank",
@@ -521,12 +548,15 @@
       }
 
       // 5. Run Detection (POST /decision)
-      async function runDetection() {
-        const btn = document.getElementById('btnRunDetection');
+      async function runDetection(mode) {
+        const btn = document.getElementById(mode === 'custom' ? 'btnRunCustomDetection' : 'btnRunPresetDetection');
+        const defaultLabel = mode === 'custom' ? 'Run custom detection' : 'Run selected scenario';
         btn.disabled = true;
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Scoring...';
 
-        const payload = buildPayload();
+        const payload = mode === 'custom'
+          ? buildPayload()
+          : Object.assign({}, PRESETS[selectedPresetKey].payload);
 
         try {
           const res = await fetch(`${API_BASE}/decision`, {
@@ -550,8 +580,54 @@
           alert(`Inference failed: ${err.message}\nMake sure backend is running at ${API_BASE}`);
         } finally {
           btn.disabled = false;
-          btn.innerHTML = '<span>Run detection</span>';
+          btn.innerHTML = `<span>${defaultLabel}</span>`;
         }
+      }
+
+      function evaluateSmsRisk(message) {
+        const text = message.toLowerCase();
+        const signals = [
+          { label: "Asks for OTP or password", hit: /\botp\b|password|pin\b|cvv/.test(text), weight: 0.32 },
+          { label: "Threatens account blocking", hit: /blocked|suspend|freeze|deactivate|locked/.test(text), weight: 0.24 },
+          { label: "Creates urgency", hit: /immediately|urgent|now|within|last chance/.test(text), weight: 0.18 },
+          { label: "Requests a call-back", hit: /call\s+\d|1800|toll[-\s]?free|customer care/.test(text), weight: 0.13 },
+          { label: "Claims bank/security authority", hit: /bank|security team|rbi|kyc|verification/.test(text), weight: 0.13 }
+        ];
+        const matched = signals.filter(signal => signal.hit);
+        const probability = Math.min(0.97, matched.reduce((sum, signal) => sum + signal.weight, 0));
+        return {
+          probability,
+          matched,
+          verdict: probability >= 0.55 ? "Likely scam alert" : probability >= 0.28 ? "Needs caution" : "Low scam signal"
+        };
+      }
+
+      function renderSmsResult() {
+        const message = document.getElementById('smsText').value.trim();
+        const box = document.getElementById('smsResultBox');
+        if (!message) {
+          box.innerHTML = '<div class="sms-result-empty">Enter an SMS message before checking it.</div>';
+          return;
+        }
+
+        const result = evaluateSmsRisk(message);
+        const pct = Math.round(result.probability * 100);
+        const className = result.probability >= 0.55 ? 'sms-risk-high' : result.probability >= 0.28 ? 'sms-risk-medium' : 'sms-risk-low';
+        const reasons = result.matched.length
+          ? result.matched.map(signal => `<span class="shap-pill"><span class="shap-pill-name">${signal.label}</span><span class="shap-pill-val pos">+${signal.weight.toFixed(2)}</span></span>`).join('')
+          : '<span class="shap-pill"><span class="shap-pill-name">No high-pressure language found</span><span class="shap-pill-val neg">-</span></span>';
+        const explanation = result.matched.length
+          ? `This message uses ${result.matched.length} common scam pressure signal${result.matched.length === 1 ? '' : 's'}, so Sentinel would ask the user to pause and verify through an official channel.`
+          : 'The message does not strongly resemble the OTP, threat, or urgency patterns in this demo checker.';
+
+        box.innerHTML = `
+          <div class="sms-risk-header ${className}">
+            <span>${result.verdict}</span>
+            <strong>${pct}%</strong>
+          </div>
+          <p class="sms-explanation">"${explanation}"</p>
+          <div class="shap-factors-list">${reasons}</div>
+        `;
       }
 
       // 6. Render Result in Exact Required Order
@@ -732,17 +808,10 @@
           });
         });
 
-        // Advanced toggle
-        document.getElementById('btnToggleAdvanced').addEventListener('click', () => {
-          const body = document.getElementById('advancedPayloadSection');
-          const chev = document.getElementById('advancedChevron');
-          const isHidden = body.style.display === 'none';
-          body.style.display = isHidden ? 'block' : 'none';
-          chev.style.transform = isHidden ? 'rotate(90deg)' : 'rotate(0deg)';
-        });
-
         // Run detection
-        document.getElementById('btnRunDetection').addEventListener('click', runDetection);
+        document.getElementById('btnRunPresetDetection').addEventListener('click', () => runDetection('preset'));
+        document.getElementById('btnRunCustomDetection').addEventListener('click', () => runDetection('custom'));
+        document.getElementById('btnCheckSms').addEventListener('click', renderSmsResult);
 
         // Escape controls
         document.getElementById('btnRequestOtp').addEventListener('click', handleRequestOtp);

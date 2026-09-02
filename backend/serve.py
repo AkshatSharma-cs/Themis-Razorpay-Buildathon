@@ -1,5 +1,5 @@
 """
-serve.py — Sentinel service layer (Razorpay AI Buildathon 2026, Track 2).
+serve.py — Themis service layer (Razorpay AI Buildathon 2026, Track 2).
 
 Framework choice: FastAPI over Gradio.
   - We need distinct, typed JSON endpoints (/score, /decision, /release,
@@ -23,6 +23,7 @@ from __future__ import annotations
 import json
 import os
 import random
+import secrets
 import string
 import time
 import uuid
@@ -33,8 +34,9 @@ from typing import Any, Literal, Optional
 
 import joblib
 import numpy as np
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import APIKeyHeader
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -53,12 +55,31 @@ MODEL_PATH = os.environ.get("SENTINEL_MODEL_PATH", "model.joblib")
 COOLING_OFF_DAILY_CAP = int(os.environ.get("SENTINEL_DAILY_CAP", "3"))
 DEFAULT_COOLING_OFF_HOURS = float(os.environ.get("SENTINEL_COOLING_OFF_HOURS", "2"))
 OTP_TTL_SECONDS = int(os.environ.get("SENTINEL_OTP_TTL_SECONDS", "300"))
+API_KEYS = [
+    key.strip()
+    for key in os.environ.get(
+        "THEMIS_API_KEYS",
+        os.environ.get("SENTINEL_API_KEYS", "themis-demo-key"),
+    ).split(",")
+    if key.strip()
+]
+CORS_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get(
+        "THEMIS_CORS_ORIGINS",
+        os.environ.get("SENTINEL_CORS_ORIGINS", "*"),
+    ).split(",")
+    if origin.strip()
+]
+RATE_LIMIT_PER_MINUTE = int(os.environ.get("THEMIS_RATE_LIMIT_PER_MINUTE", "60"))
 
 # In-memory OTP store for the demo escape path. This is intentionally NOT
 # persisted or hash-chained — OTPs are ephemeral secrets, not audit facts.
 # Only the RELEASE *event* (that a valid OTP + confirmation occurred) goes
 # into the audit chain.
 _otp_store: dict[str, dict] = {}
+_rate_limit_store: dict[str, tuple[float, int]] = {}
+_api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
 # --------------------------------------------------------------------------- #
@@ -88,7 +109,7 @@ class DefenseAction:
     def __post_init__(self):
         if self.action_type not in _ALLOWED_ACTION_TYPES:
             raise ValueError(
-                f"SENTINEL INVARIANT VIOLATION: illegal action_type "
+                f"THEMIS INVARIANT VIOLATION: illegal action_type "
                 f"'{self.action_type}'. This is a hard disqualification line "
                 f"for this track — refusing to construct."
             )
@@ -96,7 +117,7 @@ class DefenseAction:
         for term in _FORBIDDEN_TERMS:
             if term in blob:
                 raise ValueError(
-                    f"SENTINEL INVARIANT VIOLATION: forbidden term '{term}' "
+                    f"THEMIS INVARIANT VIOLATION: forbidden term '{term}' "
                     f"found in action text. Refusing to construct."
                 )
         if self.action_type == "cooling_off" and self.duration_hours <= 0:
@@ -364,11 +385,44 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=CORS_ALLOWED_ORIGINS or ["*"],
+    allow_credentials=not ("*" in CORS_ALLOWED_ORIGINS),
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+def _rate_limit(api_key: str) -> None:
+    if RATE_LIMIT_PER_MINUTE <= 0:
+        return
+
+    now = time.time()
+    window_start, count = _rate_limit_store.get(api_key, (now, 0))
+    if now - window_start >= 60:
+        _rate_limit_store[api_key] = (now, 1)
+        return
+    if count >= RATE_LIMIT_PER_MINUTE:
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "error": "rate_limit_exceeded",
+                "message": "API key rate limit exceeded. Try again in a minute.",
+            },
+        )
+    _rate_limit_store[api_key] = (window_start, count + 1)
+
+
+def require_api_key(api_key: str | None = Depends(_api_key_header)) -> str:
+    if not api_key or not any(secrets.compare_digest(api_key, key) for key in API_KEYS):
+        raise HTTPException(
+            status_code=401,
+            detail={
+                "error": "invalid_api_key",
+                "message": "Missing or invalid X-API-Key header.",
+            },
+        )
+    _rate_limit(api_key)
+    return api_key
 
 
 @app.on_event("startup")
@@ -378,6 +432,7 @@ def _startup():
 
 
 @app.get("/health")
+@app.get("/v1/health")
 def health():
     return {
         "status": "ok",
@@ -393,7 +448,8 @@ def health():
 # --------------------------------------------------------------------------- #
 
 @app.post("/score", response_model=ScoreResponse)
-def score_transaction(payload: TransactionPayload):
+@app.post("/v1/score", response_model=ScoreResponse)
+def score_transaction(payload: TransactionPayload, api_key: str = Depends(require_api_key)):
     tx_id = payload.tx_id or f"txn_{uuid.uuid4().hex[:12]}"
     probability, top_features = bundle.score(payload)
 
@@ -421,7 +477,8 @@ def score_transaction(payload: TransactionPayload):
 # --------------------------------------------------------------------------- #
 
 @app.post("/decision", response_model=DecisionResponse)
-def decide(payload: TransactionPayload):
+@app.post("/v1/decision", response_model=DecisionResponse)
+def decide(payload: TransactionPayload, api_key: str = Depends(require_api_key)):
     tx_id = payload.tx_id or f"txn_{uuid.uuid4().hex[:12]}"
 
     # 1. Score first — this value is FINAL and does not change based on
@@ -508,7 +565,8 @@ def decide(payload: TransactionPayload):
 # --------------------------------------------------------------------------- #
 
 @app.post("/release/request-otp")
-def request_otp(req: ReleaseRequestOtp):
+@app.post("/v1/release/request-otp")
+def request_otp(req: ReleaseRequestOtp, api_key: str = Depends(require_api_key)):
     """
     DEMO-ONLY implementation: generates a 6-digit OTP and returns it directly
     in the response so the flow is testable without an SMS gateway (every
@@ -532,11 +590,12 @@ def request_otp(req: ReleaseRequestOtp):
 
 
 @app.post("/release/confirm")
-def confirm_release(req: ReleaseConfirm):
+@app.post("/v1/release/confirm")
+def confirm_release(req: ReleaseConfirm, api_key: str = Depends(require_api_key)):
     """
     The escape path: a genuine payer can always end their own cooling-off
     immediately by re-authenticating (fresh OTP) and explicitly confirming
-    intent. This is the counterweight to the daily cap — Sentinel can delay
+    intent. This is the counterweight to the daily cap — Themis can delay
     a payment, but it can never trap a real payer who insists they meant to
     pay.
     """
@@ -580,7 +639,8 @@ def confirm_release(req: ReleaseConfirm):
 # --------------------------------------------------------------------------- #
 
 @app.get("/audit/{tx_id}")
-def get_audit(tx_id: str):
+@app.get("/v1/audit/{tx_id}")
+def get_audit(tx_id: str, api_key: str = Depends(require_api_key)):
     trail = audit_db.get_audit_trail(tx_id)
     if not trail:
         raise HTTPException(status_code=404, detail="No audit trail for this tx_id.")
@@ -588,7 +648,8 @@ def get_audit(tx_id: str):
 
 
 @app.get("/audit/verify/chain")
-def verify_audit_chain():
+@app.get("/v1/audit/verify/chain")
+def verify_audit_chain(api_key: str = Depends(require_api_key)):
     """
     Demo endpoint: proves the audit log hasn't been tampered with. Call this
     live during the demo, then (in a separate terminal) hand-edit a row with
