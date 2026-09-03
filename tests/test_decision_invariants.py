@@ -2,7 +2,7 @@
 tests/test_decision_invariants.py
 
 Covers the single most important invariant in the codebase (per
-ARCHITECTURE.md section 2): Sentinel can never emit an action that blocks,
+ARCHITECTURE.md section 2): Themis can never emit an action that blocks,
 reverses, freezes, or otherwise acts against a payee -- only
 cooling_off / advisory_only / none, and never with forbidden language in
 the human-readable explanation.
@@ -27,7 +27,7 @@ FORBIDDEN_TERMS = ["block", "reverse", "chargeback", "freeze", "payee_account"]
     "payee_account_debit", "escalate_to_bank", "", "COOLING_OFF",  # case-sensitive
 ])
 def test_illegal_action_type_is_rejected(bad_type):
-    with pytest.raises(ValueError, match="SENTINEL INVARIANT VIOLATION"):
+    with pytest.raises(ValueError, match="THEMIS INVARIANT VIOLATION"):
         DefenseAction(action_type=bad_type, reason="any reason", duration_hours=1.0)
 
 
@@ -185,7 +185,7 @@ def test_decision_below_threshold_is_none(isolated_bundle, monkeypatch):
 
 def test_decision_above_threshold_is_cooling_off_until_daily_cap(isolated_bundle, monkeypatch):
     """Mirrors the daily-cap logic in serve.py: the first
-    SENTINEL_DAILY_CAP (default 3) high-risk decisions for a payer in a
+    THEMIS_DAILY_CAP (default 3) high-risk decisions for a payer in a
     day get cooling_off; after that, advisory_only -- never a fourth
     cooling-off, and never anything outside those two."""
     monkeypatch.setattr(serve.bundle, "score", _fixed_score(0.9))

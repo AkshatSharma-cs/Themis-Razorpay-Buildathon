@@ -1,4 +1,4 @@
-# Sentinel — HF Spaces (Docker SDK, CPU Basic, free tier)
+# Themis — HF Spaces (Docker SDK, CPU Basic, free tier)
 FROM python:3.13-slim
 
 # --- system deps ------------------------------------------------------------
@@ -29,13 +29,13 @@ ENV PYTHONPATH=/app:/app/backend
 # serve.py's ModelBundle defaults to bare "model.joblib" / "metrics.json"
 # in the CWD. Point the env vars it already reads at the real location so
 # nothing needs to move or be duplicated.
-ENV SENTINEL_MODEL_PATH=/app/ml/artifacts/sentinel_model.joblib
-ENV SENTINEL_METRICS_PATH=/app/ml/artifacts/metrics.json
+ENV THEMIS_MODEL_PATH=/app/ml/artifacts/sentinel_model.joblib
+ENV THEMIS_METRICS_PATH=/app/ml/artifacts/metrics.json
 # feature_order.json is not produced anywhere in this repo today, so this
 # is left unset deliberately — see the "known issues" note that ships
 # alongside this Dockerfile. ModelBundle.load() will fall back to its
 # hardcoded 8-column feature_order list when this file is absent.
-# ENV SENTINEL_FEATURES_PATH=/app/ml/artifacts/feature_order.json
+# ENV THEMIS_FEATURES_PATH=/app/ml/artifacts/feature_order.json
 
 # Anthropic-unrelated demo API keys — set as HF Spaces "Repository secrets",
 # never baked into the image. Listed here only as documentation of what the

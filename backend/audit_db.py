@@ -1,5 +1,5 @@
 """
-audit_db.py — Append-only, hash-chained audit log for Sentinel.
+audit_db.py — Append-only, hash-chained audit log for Themis.
 
 WHY THIS EXISTS:
 Judges and regulators don't need to trust our word that the audit log wasn't
@@ -29,7 +29,7 @@ from datetime import datetime, timezone
 from typing import Any, Optional
 from backend.narration import get_narration
 
-DB_PATH = os.environ.get("SENTINEL_AUDIT_DB", "sentinel_audit.sqlite3")
+DB_PATH = os.environ.get("THEMIS_AUDIT_DB", "sentinel_audit.sqlite3")
 
 # Single lock because SQLite serializes writers anyway; keeps hash-chain
 # appends atomic without reaching for a heavier concurrency model.

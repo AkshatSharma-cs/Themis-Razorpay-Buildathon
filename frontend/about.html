@@ -94,7 +94,7 @@
 
       <!-- Single link below the blocks -->
       <div class="arch-footer-link animate-fade-in delay-4">
-        <a href="https://github.com/AkshatSharma-cs/Sentinel-Razorpay-Buildathon" target="_blank" rel="noopener" class="arch-github-link">
+        <a href="https://github.com/AkshatSharma-cs/Themis-Razorpay-Buildathon" target="_blank" rel="noopener noreferrer" class="arch-github-link">
           Read the full technical writeup on GitHub &rarr;
         </a>
       </div>
@@ -116,7 +116,7 @@
     let healthTimer = null;
     async function checkHealth() {
       const urlParams = new URLSearchParams(window.location.search);
-      const apiBase = urlParams.get('api') || sessionStorage.getItem('sentinel_api_base') || 'https://themis-razorpay-buildathon.onrender.com';
+      const apiBase = urlParams.get('api') || sessionStorage.getItem('themis_api_base') || 'https://themis-razorpay-buildathon.onrender.com';
       const dot = document.getElementById('navHealthDot');
       const text = document.getElementById('navHealthText');
       const pill = document.getElementById('navHealthPill');

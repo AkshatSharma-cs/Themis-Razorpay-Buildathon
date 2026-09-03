@@ -1,4 +1,4 @@
-# Sentinel — synthetic data + baseline model for "authorized but deceived" UPI scam detection
+# Themis — synthetic data + baseline model for "authorized but deceived" UPI scam detection
 
 Razorpay AI Buildathon 2026, Track 2 (AI Risk Manager). Solo build, zero
 budget, CPU-only. Libraries used: numpy, pandas, scipy (transitively via

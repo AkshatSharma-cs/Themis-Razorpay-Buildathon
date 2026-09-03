@@ -552,7 +552,7 @@ def build_regime(obs_cfg: ObservableConfig, latent_cfg: LatentProcessConfig):
     for col in fill_zero_cols:
         base[col] = base[col].fillna(0.0)
     base["time_since_last_txn_hours"] = base["time_since_last_txn_hours"].fillna(24 * 30)
-    # a brand-new payee relationship: novelty is "large" (sentinel), not 0
+    # a brand-new payee relationship: novelty is "large", not 0
     base["payee_novelty_days"] = base["payee_novelty_days"].fillna(9999.0)
 
     diag = diagnostics(latent_df, latent_cfg_used)

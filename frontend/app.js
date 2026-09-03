@@ -1,5 +1,5 @@
 /**
- * app.js — Sentinel Modern Multi-Page Experience & Live Risk Engine Integration
+ * app.js — Themis Modern Multi-Page Experience & Live Risk Engine Integration
  */
 
 (function () {
@@ -12,6 +12,7 @@
     const API_BASE = (window.location.protocol.startsWith('http') && window.location.port !== '5500' && window.location.port !== '3000') 
         ? window.location.origin 
         : 'http://localhost:7860';
+    const API_KEY = window.THEMIS_API_KEY || sessionStorage.getItem('themis_api_key') || 'themis-demo-key';
 
     const PRESETS = {
         mule: {
@@ -186,9 +187,9 @@
     // -------------------------------------------------------------------------
 
     async function apiRequest(endpoint, body) {
-        const res = await fetch(`${API_BASE}${endpoint}`, {
+        const res = await fetch(`${API_BASE}/v1${endpoint}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
             body: JSON.stringify(body)
         });
         if (!res.ok) {

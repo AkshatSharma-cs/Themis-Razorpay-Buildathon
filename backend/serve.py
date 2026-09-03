@@ -25,6 +25,7 @@ import os
 import random
 import secrets
 import string
+import threading
 import time
 import uuid
 from dataclasses import dataclass, asdict
@@ -50,16 +51,16 @@ load_dotenv()
 # Configuration
 # --------------------------------------------------------------------------- #
 
-MODEL_PATH = os.environ.get("SENTINEL_MODEL_PATH", "model.joblib")
+MODEL_PATH = os.environ.get("THEMIS_MODEL_PATH", "model.joblib")
 
-COOLING_OFF_DAILY_CAP = int(os.environ.get("SENTINEL_DAILY_CAP", "3"))
-DEFAULT_COOLING_OFF_HOURS = float(os.environ.get("SENTINEL_COOLING_OFF_HOURS", "2"))
-OTP_TTL_SECONDS = int(os.environ.get("SENTINEL_OTP_TTL_SECONDS", "300"))
+COOLING_OFF_DAILY_CAP = int(os.environ.get("THEMIS_DAILY_CAP", "3"))
+DEFAULT_COOLING_OFF_HOURS = float(os.environ.get("THEMIS_COOLING_OFF_HOURS", "2"))
+OTP_TTL_SECONDS = int(os.environ.get("THEMIS_OTP_TTL_SECONDS", "300"))
 API_KEYS = [
     key.strip()
     for key in os.environ.get(
         "THEMIS_API_KEYS",
-        os.environ.get("SENTINEL_API_KEYS", "themis-demo-key"),
+        os.environ.get("THEMIS_API_KEYS", "themis-demo-key"),
     ).split(",")
     if key.strip()
 ]
@@ -67,7 +68,7 @@ CORS_ALLOWED_ORIGINS = [
     origin.strip()
     for origin in os.environ.get(
         "THEMIS_CORS_ORIGINS",
-        os.environ.get("SENTINEL_CORS_ORIGINS", "*"),
+        os.environ.get("THEMIS_CORS_ORIGINS", "*"),
     ).split(",")
     if origin.strip()
 ]
@@ -79,6 +80,7 @@ RATE_LIMIT_PER_MINUTE = int(os.environ.get("THEMIS_RATE_LIMIT_PER_MINUTE", "60")
 # into the audit chain.
 _otp_store: dict[str, dict] = {}
 _rate_limit_store: dict[str, tuple[float, int]] = {}
+_rate_limit_lock = threading.Lock()
 _api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
@@ -397,19 +399,20 @@ def _rate_limit(api_key: str) -> None:
         return
 
     now = time.time()
-    window_start, count = _rate_limit_store.get(api_key, (now, 0))
-    if now - window_start >= 60:
-        _rate_limit_store[api_key] = (now, 1)
-        return
-    if count >= RATE_LIMIT_PER_MINUTE:
-        raise HTTPException(
-            status_code=429,
-            detail={
-                "error": "rate_limit_exceeded",
-                "message": "API key rate limit exceeded. Try again in a minute.",
-            },
-        )
-    _rate_limit_store[api_key] = (window_start, count + 1)
+    with _rate_limit_lock:
+        window_start, count = _rate_limit_store.get(api_key, (now, 0))
+        if now - window_start >= 60:
+            _rate_limit_store[api_key] = (now, 1)
+            return
+        if count >= RATE_LIMIT_PER_MINUTE:
+            raise HTTPException(
+                status_code=429,
+                detail={
+                    "error": "rate_limit_exceeded",
+                    "message": "API key rate limit exceeded. Try again in a minute.",
+                },
+            )
+        _rate_limit_store[api_key] = (window_start, count + 1)
 
 
 def require_api_key(api_key: str | None = Depends(_api_key_header)) -> str:
@@ -640,7 +643,7 @@ def confirm_release(req: ReleaseConfirm, api_key: str = Depends(require_api_key)
 
 @app.get("/audit/{tx_id}")
 @app.get("/v1/audit/{tx_id}")
-def get_audit(tx_id: str, api_key: str = Depends(require_api_key)):
+def get_audit(tx_id: str):
     trail = audit_db.get_audit_trail(tx_id)
     if not trail:
         raise HTTPException(status_code=404, detail="No audit trail for this tx_id.")
@@ -649,7 +652,7 @@ def get_audit(tx_id: str, api_key: str = Depends(require_api_key)):
 
 @app.get("/audit/verify/chain")
 @app.get("/v1/audit/verify/chain")
-def verify_audit_chain(api_key: str = Depends(require_api_key)):
+def verify_audit_chain():
     """
     Demo endpoint: proves the audit log hasn't been tampered with. Call this
     live during the demo, then (in a separate terminal) hand-edit a row with

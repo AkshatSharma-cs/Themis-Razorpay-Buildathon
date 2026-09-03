@@ -1,5 +1,5 @@
 """
-Shared pytest fixtures and sys.path setup for the Sentinel test suite.
+Shared pytest fixtures and sys.path setup for the Themis test suite.
 
 Layout assumed:
     <repo_root>/backend/serve.py       (does `from narration import ...` --

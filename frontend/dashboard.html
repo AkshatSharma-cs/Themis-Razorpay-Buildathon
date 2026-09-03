@@ -54,7 +54,7 @@
         <!-- ── LEFT ZONE: RUN A SCENARIO ────────────────────────── -->
         <section class="console-zone console-zone--left glass-panel animate-fade-in">
           <div class="zone-header">
-            <h2 class="zone-title">Choose a preset fraud scenario or enter your own transaction</h2>
+            <h2 class="zone-title">Choose a preset fraud scenario.</h2>
           </div>
 
           <!-- 2x2 Preset Cards Grid -->
@@ -100,42 +100,46 @@
           <!-- Custom Case Payload Panel -->
           <div class="custom-case-panel">
             <div class="custom-case-header">
-              <h3>Custom Case</h3>
-              <p>Adjust the transaction details and run a separate detection.</p>
+              <h3>Build Your Own Transaction</h3>
+              <p>Fill in a transaction's details below to see if Themis would flag it as risky.</p>
             </div>
 
             <div id="advancedPayloadSection" class="advanced-payload-body">
               <div class="payload-fields-grid">
                 <div class="field-item">
-                  <label>Payer VPA</label>
+                  <label for="payerVpa">Sender's UPI ID</label>
                   <input type="text" id="payerVpa" class="form-input">
                 </div>
                 <div class="field-item">
-                  <label>Payee VPA</label>
+                  <label for="payeeVpa">Receiver's UPI ID</label>
                   <input type="text" id="payeeVpa" class="form-input">
                 </div>
                 <div class="field-item">
-                  <label>Amount (₹)</label>
+                  <label for="amount">Payment Amount (₹)</label>
                   <input type="number" id="amount" class="form-input" step="any">
                 </div>
                 <div class="field-item">
-                  <label>User 90d Mean (₹)</label>
+                  <label for="userMeanAmt">Sender's Usual Payment Amount (₹)</label>
+                  <span class="field-help">What this person typically sends</span>
                   <input type="number" id="userMeanAmt" class="form-input" step="any">
                 </div>
                 <div class="field-item">
-                  <label>User 90d p95 (₹)</label>
+                  <label for="userP95Amt">Sender's Largest Typical Payment (₹)</label>
+                  <span class="field-help">The highest amount they'd normally send</span>
                   <input type="number" id="userP95Amt" class="form-input" step="any">
                 </div>
                 <div class="field-item">
-                  <label>Payee Novelty (Days)</label>
+                  <label for="payeeNoveltyDays">How Long They've Known This Receiver (Days)</label>
+                  <span class="field-help">0 = brand new, higher = a longtime contact</span>
                   <input type="number" id="payeeNoveltyDays" class="form-input" step="any">
                 </div>
                 <div class="field-item">
-                  <label>Call Minutes</label>
+                  <label for="callMinutes">Minutes on a Phone Call During Payment</label>
+                  <span class="field-help">0 if no call was happening</span>
                   <input type="number" id="callMinutes" class="form-input" step="any">
                 </div>
                 <div class="field-item">
-                  <label>Hour of Day (0-23)</label>
+                  <label for="hourOfDay">Time of Day (0 = midnight, 23 = 11 PM)</label>
                   <input type="number" id="hourOfDay" class="form-input" min="0" max="23">
                 </div>
               </div>
@@ -143,23 +147,23 @@
               <div class="payload-flags-row">
                 <label class="flag-inline">
                   <input type="checkbox" id="callOverlapFlag">
-                  <span>Call overlap</span>
+                  <span>Call overlap (a phone call was active during the payment)</span>
                 </label>
                 <label class="flag-inline">
                   <input type="checkbox" id="screenShareFlag">
-                  <span>Screen share</span>
+                  <span>Screen share (someone remotely viewed or controlled the device)</span>
                 </label>
                 <label class="flag-inline">
                   <input type="checkbox" id="otpShareFlag">
-                  <span>OTP share</span>
+                  <span>OTP share (the one-time password was told to someone else)</span>
                 </label>
                 <label class="flag-inline">
                   <input type="checkbox" id="freshDeviceFlag">
-                  <span>Fresh device</span>
+                  <span>Fresh device (recently reinstalled or new phone)</span>
                 </label>
                 <label class="flag-inline">
                   <input type="checkbox" id="sessionLangMismatchFlag">
-                  <span>Language mismatch</span>
+                  <span>Language mismatch (an unfamiliar language or accent)</span>
                 </label>
               </div>
             </div>
@@ -170,6 +174,7 @@
           </div>
         </section>
 
+        <div class="console-right-stack">
         <!-- ── RIGHT ZONE: RESULT ──────────────────────────────── -->
         <section class="console-zone console-zone--right glass-panel animate-fade-in delay-1">
           <div class="zone-header">
@@ -250,6 +255,25 @@
           </div>
         </section>
 
+        <section id="auditPanelSection" class="audit-panel-bottom animate-fade-in">
+          <div class="zone-header audit-header-row">
+            <h2 class="zone-title">Verified Audit Trail</h2>
+            <button id="btnVerifyIntegrity" class="btn btn-gold btn-sm">
+              <i class="fa-solid fa-shield-check"></i>
+              <span>Verify integrity</span>
+            </button>
+          </div>
+
+          <div id="integrityResultBox" class="integrity-status-line font-mono">
+            Status: Click "Verify integrity" to validate cryptographic chain
+          </div>
+
+          <div class="audit-timeline-compact" id="auditTimelineCompact">
+            <div class="audit-empty-state">Run a scenario to load its verified hash-chained events.</div>
+          </div>
+        </section>
+        </div>
+
       </div>
 
       <!-- ── SMS SCAM CHECKER ─────────────────────────────────── -->
@@ -271,25 +295,6 @@
         </div>
       </section>
 
-      <!-- ── AUDIT PANEL (Collapsed / Triggered by Link) ───────── -->
-      <section id="auditPanelSection" class="audit-panel-bottom glass-panel animate-fade-in" style="display: none;">
-        <div class="zone-header audit-header-row">
-          <h2 class="zone-title">Audit Log & SHA-256 Hash Chain</h2>
-          <button id="btnVerifyIntegrity" class="btn btn-gold btn-sm">
-            <i class="fa-solid fa-shield-check"></i>
-            <span>Verify integrity</span>
-          </button>
-        </div>
-
-        <div id="integrityResultBox" class="integrity-status-line font-mono">
-          Status: Click "Verify integrity" to validate cryptographic chain
-        </div>
-
-        <div class="audit-timeline-compact" id="auditTimelineCompact">
-          <!-- Timeline items -->
-        </div>
-      </section>
-
     </div>
   </main>
 
@@ -303,7 +308,9 @@
 
       // 1. API Base Resolution
       const urlParams = new URLSearchParams(window.location.search);
-      const API_BASE = urlParams.get('api') || sessionStorage.getItem('sentinel_api_base') || 'https://themis-razorpay-buildathon.onrender.com';
+      const API_BASE = urlParams.get('api') || sessionStorage.getItem('themis_api_base') || 'https://themis-razorpay-buildathon.onrender.com';
+      const API_KEY = window.THEMIS_API_KEY || sessionStorage.getItem('themis_api_key') || 'themis-demo-key';
+      const AUTH_HEADERS = { 'Content-Type': 'application/json', 'X-API-Key': API_KEY };
 
       // 2. Presets (Full 28-feature realistic payloads)
       const PRESETS = {
@@ -559,9 +566,9 @@
           : Object.assign({}, PRESETS[selectedPresetKey].payload);
 
         try {
-          const res = await fetch(`${API_BASE}/decision`, {
+          const res = await fetch(`${API_BASE}/v1/decision`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: AUTH_HEADERS,
             body: JSON.stringify(payload)
           });
 
@@ -573,6 +580,7 @@
           const data = await res.json();
           currentDecision = data;
           renderResult(data);
+          openAuditTrail();
           
           // Successful call confirms backend is reachable
           checkHealth();
@@ -617,7 +625,7 @@
           ? result.matched.map(signal => `<span class="shap-pill"><span class="shap-pill-name">${signal.label}</span><span class="shap-pill-val pos">+${signal.weight.toFixed(2)}</span></span>`).join('')
           : '<span class="shap-pill"><span class="shap-pill-name">No high-pressure language found</span><span class="shap-pill-val neg">-</span></span>';
         const explanation = result.matched.length
-          ? `This message uses ${result.matched.length} common scam pressure signal${result.matched.length === 1 ? '' : 's'}, so Sentinel would ask the user to pause and verify through an official channel.`
+          ? `This message uses ${result.matched.length} common scam pressure signal${result.matched.length === 1 ? '' : 's'}, so Themis would ask the user to pause and verify through an official channel.`
           : 'The message does not strongly resemble the OTP, threat, or urgency patterns in this demo checker.';
 
         box.innerHTML = `
@@ -685,8 +693,6 @@
           releaseBox.style.display = 'none';
         }
 
-        // Hide audit panel initially
-        document.getElementById('auditPanelSection').style.display = 'none';
       }
 
       // 7. Escape Path Controls
@@ -696,9 +702,9 @@
         btn.disabled = true;
 
         try {
-          const res = await fetch(`${API_BASE}/release/request-otp`, {
+          const res = await fetch(`${API_BASE}/v1/release/request-otp`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: AUTH_HEADERS,
             body: JSON.stringify({
               tx_id: currentDecision.tx_id,
               payer_vpa: document.getElementById('payerVpa').value.trim()
@@ -722,9 +728,9 @@
         btn.disabled = true;
 
         try {
-          const res = await fetch(`${API_BASE}/release/confirm`, {
+          const res = await fetch(`${API_BASE}/v1/release/confirm`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: AUTH_HEADERS,
             body: JSON.stringify({
               tx_id: currentDecision.tx_id,
               payer_vpa: document.getElementById('payerVpa').value.trim(),
@@ -749,25 +755,34 @@
         if (!currentDecision) return;
         const auditPanel = document.getElementById('auditPanelSection');
         auditPanel.style.display = 'block';
-        auditPanel.scrollIntoView({ behavior: 'smooth' });
 
         const timeline = document.getElementById('auditTimelineCompact');
         timeline.innerHTML = '<div style="color: var(--gold-bright); font-size: 0.8rem;"><i class="fa-solid fa-spinner fa-spin"></i> Fetching audit trail...</div>';
 
         try {
-          const res = await fetch(`${API_BASE}/audit/${currentDecision.tx_id}`);
+          const res = await fetch(`${API_BASE}/v1/audit/${currentDecision.tx_id}`);
           if (!res.ok) throw new Error('Audit trail not found');
           const d = await res.json();
           timeline.innerHTML = '';
-          d.events.forEach(ev => {
+          const descriptions = {
+            SCORE_COMPUTED: 'The transaction was scored by the risk model.',
+            COOLING_OFF_ISSUED: 'A reversible cooling-off delay was issued for this payment.',
+            DECISION_FINALIZED: 'The final risk decision and explanation were recorded.',
+            DAILY_CAP_REACHED_ADVISORY_ONLY: 'The daily delay limit was reached, so an advisory was recorded.',
+            OTP_REQUESTED: 'A payer verification code was requested.',
+            COOLING_OFF_RELEASED: 'The payer re-authenticated and released the cooling-off delay.',
+            RELEASE_ATTEMPT_FAILED: 'A release attempt failed verification.'
+          };
+          d.events.forEach((ev, index) => {
             const item = document.createElement('div');
-            item.className = 'audit-row-item';
+            item.className = `audit-row-item${index < d.events.length - 1 ? ' audit-row-item--connected' : ''}`;
             item.innerHTML = `
               <div class="audit-row-top">
                 <span class="audit-event-name font-mono">${ev.event_type}</span>
-                <span class="audit-event-ts">${ev.timestamp}</span>
+                <span class="audit-event-ts">${ev.created_at}</span>
               </div>
-              <div class="audit-row-hash font-mono">Hash: ${ev.row_hash.substring(0, 24)}...</div>
+              <div class="audit-event-description">${descriptions[ev.event_type] || 'An audit event was recorded for this transaction.'}</div>
+              <div class="audit-row-hash font-mono" title="${ev.row_hash}">Hash: ${ev.row_hash.substring(0, 10)}... <span class="audit-hash-hint">hover for full hash</span></div>
             `;
             timeline.appendChild(item);
           });
@@ -784,9 +799,9 @@
           const res = await fetch(`${API_BASE}/audit/verify/chain`);
           const d = await res.json();
           if (d.ok) {
-            out.innerHTML = `<span style="color: var(--success);"><i class="fa-solid fa-circle-check"></i> ok: true — ${d.rows_checked} rows checked. Chain is intact.</span>`;
+            out.innerHTML = `<span style="color: var(--success);"><i class="fa-solid fa-circle-check"></i> Chain verified, no tampering detected — ${d.rows_checked} row${d.rows_checked === 1 ? '' : 's'} checked.</span>`;
           } else {
-            out.innerHTML = `<span style="color: var(--danger);"><i class="fa-solid fa-triangle-exclamation"></i> ok: false — Tampered at row ${d.first_broken_row_id}</span>`;
+            out.innerHTML = `<span style="color: var(--danger);"><i class="fa-solid fa-triangle-exclamation"></i> Chain verification failed — broken at row ${d.first_broken_row_id}: ${d.reason || 'integrity mismatch'}</span>`;
           }
         } catch (e) {
           out.innerHTML = `<span style="color: var(--danger);">Verification error: ${e.message}</span>`;

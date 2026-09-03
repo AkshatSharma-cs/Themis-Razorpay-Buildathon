@@ -1,7 +1,7 @@
 """
 train.py
 --------
-Splits, trains, calibrates, and evaluates the Sentinel scam detector.
+Splits, trains, calibrates, and evaluates the Themis scam detector.
 
 SPLIT DESIGN (why each one exists):
   * Temporal holdout (last 20% of simulated time): a fraud model that's

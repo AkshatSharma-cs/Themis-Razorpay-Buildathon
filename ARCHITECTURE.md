@@ -1,7 +1,7 @@
-# Sentinel — Architecture
+# Themis — Architecture
 
 **Track:** Razorpay AI Buildathon 2026, Track 2 (authorized-but-deceived UPI scam detection)
-**Scope:** defense-only. Sentinel never blocks a payment, reverses funds, initiates a
+**Scope:** defense-only. Themis never blocks a payment, reverses funds, initiates a
 chargeback, touches a payee's account, or acts against any party other than showing the
 payer a warning. That line is enforced in code (`DefenseAction` in `serve.py`), not just
 described here.
@@ -81,7 +81,7 @@ than the payer about the payer's own intent.
 (`count_events_today`), not a separate mutable counter, so the cap can't be reset or
 tampered with independently of the tamper-evident trail. Once a payer hits the cap for the
 day, further high-risk transactions get `advisory_only` (a non-blocking notice) instead of
-another delay — Sentinel can slow someone down a bounded number of times, never trap them
+another delay — Themis can slow someone down a bounded number of times, never trap them
 in an unbounded loop of delays.
 
 ---
