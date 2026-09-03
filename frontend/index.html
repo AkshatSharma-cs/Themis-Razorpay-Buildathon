@@ -52,7 +52,8 @@
       <!-- HYWenHei-85W is served locally from the project's available font asset. -->
       <section class="home-hero-panel animate-fade-in">
         <h2 class="hero-lock-title">
-          RAZORPAY AI BUILDATHON 2026 TRACK 2: AI RISK MANAGER
+          RAZORPAY AI BUILDATHON 2026<br>
+          TRACK 2: AI RISK MANAGER
         </h2>
 
         <p class="hero-lock-subhead">
@@ -107,6 +108,7 @@
 
     // Health Status Check with Auto-Retry
     let healthTimer = null;
+    let healthRetryStartedAt = Date.now();
     async function checkHealth() {
       const urlParams = new URLSearchParams(window.location.search);
       const apiBase = urlParams.get('api') || sessionStorage.getItem('themis_api_base') || 'https://themis-razorpay-buildathon.onrender.com';
@@ -125,13 +127,20 @@
         }
         dot.className = 'pulse-dot';
         pill.className = 'nav-status';
+        healthRetryStartedAt = Date.now();
 
         if (healthTimer) clearTimeout(healthTimer);
         healthTimer = setTimeout(checkHealth, 30000);
       } catch (e) {
-        text.textContent = 'Backend unreachable';
-        dot.className = 'pulse-dot danger';
-        pill.className = 'nav-status offline';
+        if (Date.now() - healthRetryStartedAt < 60000) {
+          text.textContent = 'Waking up the server — first load can take a minute';
+          dot.className = 'pulse-dot waking';
+          pill.className = 'nav-status waking';
+        } else {
+          text.textContent = 'Backend unreachable';
+          dot.className = 'pulse-dot danger';
+          pill.className = 'nav-status offline';
+        }
 
         if (healthTimer) clearTimeout(healthTimer);
         healthTimer = setTimeout(checkHealth, 4000);

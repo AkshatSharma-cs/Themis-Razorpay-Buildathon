@@ -105,67 +105,44 @@
             </div>
 
             <div id="advancedPayloadSection" class="advanced-payload-body">
-              <div class="payload-fields-grid">
-                <div class="field-item">
-                  <label for="payerVpa">Sender's UPI ID</label>
-                  <input type="text" id="payerVpa" class="form-input">
+              <section class="form-stage">
+                <h4 class="form-stage-title">Payment</h4>
+                <div class="payload-fields-grid">
+                  <div class="field-item"><label for="payerVpa">Sender's UPI ID</label><input type="text" id="payerVpa" class="form-input"></div>
+                  <div class="field-item"><label for="payeeVpa">Receiver's UPI ID</label><input type="text" id="payeeVpa" class="form-input"></div>
+                  <div class="field-item"><label for="amount">Payment Amount (₹)</label><input type="number" id="amount" class="form-input" step="any"></div>
                 </div>
-                <div class="field-item">
-                  <label for="payeeVpa">Receiver's UPI ID</label>
-                  <input type="text" id="payeeVpa" class="form-input">
-                </div>
-                <div class="field-item">
-                  <label for="amount">Payment Amount (₹)</label>
-                  <input type="number" id="amount" class="form-input" step="any">
-                </div>
-                <div class="field-item">
-                  <label for="userMeanAmt">Sender's Usual Payment Amount (₹)</label>
-                  <span class="field-help">What this person typically sends</span>
-                  <input type="number" id="userMeanAmt" class="form-input" step="any">
-                </div>
-                <div class="field-item">
-                  <label for="userP95Amt">Sender's Largest Typical Payment (₹)</label>
-                  <span class="field-help">The highest amount they'd normally send</span>
-                  <input type="number" id="userP95Amt" class="form-input" step="any">
-                </div>
-                <div class="field-item">
-                  <label for="payeeNoveltyDays">How Long They've Known This Receiver (Days)</label>
-                  <span class="field-help">0 = brand new, higher = a longtime contact</span>
-                  <input type="number" id="payeeNoveltyDays" class="form-input" step="any">
-                </div>
-                <div class="field-item">
-                  <label for="callMinutes">Minutes on a Phone Call During Payment</label>
-                  <span class="field-help">0 if no call was happening</span>
-                  <input type="number" id="callMinutes" class="form-input" step="any">
-                </div>
-                <div class="field-item">
-                  <label for="hourOfDay">Time of Day (0 = midnight, 23 = 11 PM)</label>
-                  <input type="number" id="hourOfDay" class="form-input" min="0" max="23">
-                </div>
-              </div>
+              </section>
 
-              <div class="payload-flags-row">
-                <label class="flag-inline">
-                  <input type="checkbox" id="callOverlapFlag">
-                  <span>Call overlap (a phone call was active during the payment)</span>
-                </label>
-                <label class="flag-inline">
-                  <input type="checkbox" id="screenShareFlag">
-                  <span>Screen share (someone remotely viewed or controlled the device)</span>
-                </label>
-                <label class="flag-inline">
-                  <input type="checkbox" id="otpShareFlag">
-                  <span>OTP share (the one-time password was told to someone else)</span>
-                </label>
-                <label class="flag-inline">
-                  <input type="checkbox" id="freshDeviceFlag">
-                  <span>Fresh device (recently reinstalled or new phone)</span>
-                </label>
-                <label class="flag-inline">
-                  <input type="checkbox" id="sessionLangMismatchFlag">
-                  <span>Language mismatch (an unfamiliar language or accent)</span>
-                </label>
-              </div>
+              <section class="form-stage">
+                <h4 class="form-stage-title">Relationship History</h4>
+                <div class="payload-fields-grid">
+                  <div class="field-item"><label for="userMeanAmt">Sender's Usual Payment Amount (₹)</label><span class="field-help">What this person typically sends</span><input type="number" id="userMeanAmt" class="form-input" step="any"></div>
+                  <div class="field-item"><label for="userP95Amt">Sender's Largest Typical Payment (₹)</label><span class="field-help">The highest amount they'd normally send</span><input type="number" id="userP95Amt" class="form-input" step="any"></div>
+                  <div class="field-item"><label for="payeeNoveltyDays">How Long They've Known This Receiver</label><span class="field-help" id="receiverTenureHelp">Enter days; 0 = brand new</span><input type="number" id="payeeNoveltyDays" class="form-input" step="any"></div>
+                </div>
+              </section>
+
+              <section class="form-stage">
+                <h4 class="form-stage-title">Current Situation</h4>
+                <div class="payload-fields-grid">
+                  <div class="field-item"><label for="callMinutes">Call Minutes</label><span class="field-help">0 if no call was happening</span><input type="number" id="callMinutes" class="form-input" step="any"></div>
+                  <div class="field-item"><label for="hourOfDay">Time of Day (0 = midnight, 23 = 11 PM)</label><input type="number" id="hourOfDay" class="form-input" min="0" max="23"></div>
+                </div>
+                <div class="payload-flags-row">
+                  <label class="flag-inline"><input type="checkbox" id="callOverlapFlag"><span>Call overlap (a phone call was active during the payment)</span></label>
+                  <label class="flag-inline"><input type="checkbox" id="screenShareFlag"><span>Screen share (someone remotely viewed or controlled the device)</span></label>
+                  <label class="flag-inline"><input type="checkbox" id="otpShareFlag"><span>OTP share (the one-time password was told to someone else)</span></label>
+                  <label class="flag-inline"><input type="checkbox" id="sessionLangMismatchFlag"><span>Language mismatch (an unfamiliar language or accent)</span></label>
+                </div>
+              </section>
+
+              <section class="form-stage form-stage--device">
+                <h4 class="form-stage-title">Device</h4>
+                <div class="payload-flags-row">
+                  <label class="flag-inline"><input type="checkbox" id="freshDeviceFlag"><span>Fresh device (recently reinstalled or new phone)</span></label>
+                </div>
+              </section>
             </div>
 
             <button id="btnRunCustomDetection" class="btn btn-gold btn-custom-detection">
@@ -176,7 +153,7 @@
 
         <div class="console-right-stack">
         <!-- ── RIGHT ZONE: RESULT ──────────────────────────────── -->
-        <section class="console-zone console-zone--right glass-panel animate-fade-in delay-1">
+        <section id="resultSection" class="console-zone console-zone--right glass-panel animate-fade-in delay-1">
           <div class="zone-header">
             <h2 class="zone-title">Result</h2>
           </div>
@@ -189,11 +166,11 @@
           <!-- Active Result Content (Exact Order) -->
           <div id="resultContent" class="result-active-content" style="display: none;">
 
-            <!-- 1. Probability Gauge & Threshold -->
+            <!-- 1. Score -->
             <div class="result-score-block">
               <div class="score-line-labels">
                 <span class="score-label-main">Risk score</span>
-                <span class="score-label-cutoff" id="scoreCutoffText">Cutoff: 0.16</span>
+                <span class="score-label-cutoff" id="scoreCutoffText">Threshold: 16%</span>
               </div>
               <div class="gauge-track">
                 <div class="gauge-fill" id="gaugeFill" style="width: 0%;"></div>
@@ -202,25 +179,30 @@
               <div class="score-numeric-val gold-gradient-text" id="scoreNumericVal">0.0%</div>
             </div>
 
-            <!-- 2. Action Result Line -->
-            <div class="result-action-line" id="resultActionLine">
-              &rarr; Cleared, no action
-            </div>
+            <!-- 2. Plain-language explanation -->
+            <section class="result-plain-summary">
+              <h3>Why this score?</h3>
+              <p id="narrationText">Run a scenario to see the plain-language explanation.</p>
+              <div class="plain-reasons-list" id="plainReasonsList">
+                <span class="plain-reason-empty">The strongest contributing factors will appear here.</span>
+              </div>
+            </section>
 
-            <!-- 3. Narration Text + Small Source Tag -->
-            <div class="result-narration-row">
-              <p class="narration-quote" id="narrationText">
-                "Transaction scored safely within baseline behavior."
-              </p>
-              <span class="narration-tag-mini" id="narrationSourceTag">template</span>
-            </div>
-
-            <!-- 4. Top 3 SHAP Factors (Plain-Language Horizontal List) -->
-            <div class="shap-factors-section">
-              <div class="shap-factors-list" id="shapFactorsList">
-                <!-- Populated dynamically with plain-language labels -->
+            <!-- 3. Recommended action -->
+            <div class="result-action-block">
+              <h3>Recommended action</h3>
+              <div class="result-action-line" id="resultActionLine">
+                &rarr; Cleared, no action
               </div>
             </div>
+
+            <!-- 4. Technical detail, always visible below the summary -->
+            <section class="technical-details">
+              <div class="technical-details-heading">Technical details <span id="narrationSourceTag">template</span></div>
+              <div class="technical-feature-list" id="technicalDetailsList">
+                <span>SHAP feature contributions will appear after a run.</span>
+              </div>
+            </section>
 
             <!-- 5. Release Now Control (Compact, if cooling_off) -->
             <div id="releaseControlBox" class="release-control-compact" style="display: none;">
@@ -245,13 +227,6 @@
               </div>
             </div>
 
-            <!-- 6. Small link to Audit Panel -->
-            <div class="audit-link-wrapper">
-              <button type="button" id="btnOpenAudit" class="audit-link-btn">
-                View audit trail for this transaction &rarr;
-              </button>
-            </div>
-
           </div>
         </section>
 
@@ -263,14 +238,28 @@
               <span>Verify integrity</span>
             </button>
           </div>
+          <p class="audit-explanation">Every action gets locked into a record that can't be quietly edited later — click Verify to prove it.</p>
 
+          <div class="audit-timeline-heading">Timeline</div>
+          <div id="auditTimelineCompact" class="audit-timeline-compact">
+            <div class="audit-empty-state">Run a scenario to see what Themis recorded.</div>
+          </div>
+          <div class="audit-technical-heading">Hash-chain details</div>
           <div id="integrityResultBox" class="integrity-status-line font-mono">
-            Status: Click "Verify integrity" to validate cryptographic chain
+            Status: Click "Verify integrity" to check the record chain
           </div>
+          <div class="audit-technical-list" id="auditTechnicalList">
+            <div class="audit-empty-state">Technical hashes will appear after a run.</div>
+          </div>
+        </section>
 
-          <div class="audit-timeline-compact" id="auditTimelineCompact">
-            <div class="audit-empty-state">Run a scenario to load its verified hash-chained events.</div>
-          </div>
+        <section class="scoring-guide-panel" aria-labelledby="scoringGuideTitle">
+          <h2 id="scoringGuideTitle" class="zone-title">How Scoring Works</h2>
+          <ol class="scoring-guide-list">
+            <li>Transaction details are sent to the live model.</li>
+            <li>The model returns a risk score and its top reasons.</li>
+            <li>Themis decides: no action, an advisory note, or a short cooling-off delay.</li>
+          </ol>
         </section>
         </div>
 
@@ -474,6 +463,25 @@
         return FEATURE_LABELS[raw] || raw.replace(/_/g, ' ');
       }
 
+      function plainReason(feature, value) {
+        const reasons = {
+          call_overlap_flag: 'An active phone call was happening.',
+          call_minutes: `The payment happened during a ${value}-minute call.`,
+          screen_share_flag: 'Someone was sharing or viewing the screen.',
+          otp_share_flag: 'A one-time password may have been shared.',
+          amount_p95_ratio: 'The amount is higher than this sender usually pays.',
+          amount: 'The payment amount is unusual for this sender.',
+          payee_novelty_days: 'This receiver is new or not well established in the sender history.',
+          fresh_device_flag: 'The payment came from a recently changed or reinstalled device.',
+          hour_of_day: 'The payment happened at an unusual time.',
+          payee_velocity_24h: 'This receiver has seen an unusual burst of payments.',
+          payee_name_match_score: 'The receiver details do not closely match the expected name.',
+          session_language_mismatch_flag: 'The session used an unfamiliar language or accent.',
+          user_mean_amt_90d: 'The amount is above the sender\'s usual payment size.'
+        };
+        return reasons[feature] || `Signal checked: ${formatFeatureName(feature)}.`;
+      }
+
       // 3. Populate Advanced Form
       function syncPresetToForm(key) {
         const p = PRESETS[key].payload;
@@ -483,6 +491,7 @@
         document.getElementById('userMeanAmt').value = p.user_mean_amt_90d;
         document.getElementById('userP95Amt').value = p.user_p95_amt_90d;
         document.getElementById('payeeNoveltyDays').value = p.payee_novelty_days;
+        updateReceiverTenureHelp();
         document.getElementById('callMinutes').value = p.call_minutes;
         document.getElementById('hourOfDay').value = p.hour_of_day;
 
@@ -513,8 +522,22 @@
         return base;
       }
 
+      function updateReceiverTenureHelp() {
+        const days = parseFloat(document.getElementById('payeeNoveltyDays').value);
+        const help = document.getElementById('receiverTenureHelp');
+        if (!help || !Number.isFinite(days)) return;
+        const years = days / 365;
+        const yearsText = years >= 1 ? ` (~${years.toFixed(1).replace('.0', '')} year${years >= 2 ? 's' : ''})` : '';
+        help.textContent = `${days === 0 ? 'Brand new receiver' : `${days} days${yearsText}`}`;
+      }
+
+      function scrollToResult() {
+        document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
       // 4. Health Check with Auto-Retry for Render cold-starts
       let healthRetryTimer = null;
+      let healthRetryStartedAt = Date.now();
 
       async function checkHealth() {
         const dot = document.getElementById('navHealthDot');
@@ -539,14 +562,21 @@
           }
           dot.className = 'pulse-dot';
           pill.className = 'nav-status';
+          healthRetryStartedAt = Date.now();
 
           // Clear fast retry on success; set quiet background check every 30s
           if (healthRetryTimer) clearTimeout(healthRetryTimer);
           healthRetryTimer = setTimeout(checkHealth, 30000);
         } catch (e) {
-          text.textContent = 'Backend unreachable';
-          dot.className = 'pulse-dot danger';
-          pill.className = 'nav-status offline';
+          if (Date.now() - healthRetryStartedAt < 60000) {
+            text.textContent = 'Waking up the server — first load can take a minute';
+            dot.className = 'pulse-dot waking';
+            pill.className = 'nav-status waking';
+          } else {
+            text.textContent = 'Backend unreachable';
+            dot.className = 'pulse-dot danger';
+            pill.className = 'nav-status offline';
+          }
 
           // Auto-retry in 4 seconds if Render was waking up from cold start
           if (healthRetryTimer) clearTimeout(healthRetryTimer);
@@ -581,6 +611,7 @@
           currentDecision = data;
           renderResult(data);
           openAuditTrail();
+          scrollToResult();
           
           // Successful call confirms backend is reachable
           checkHealth();
@@ -615,6 +646,7 @@
         const box = document.getElementById('smsResultBox');
         if (!message) {
           box.innerHTML = '<div class="sms-result-empty">Enter an SMS message before checking it.</div>';
+          scrollToResult();
           return;
         }
 
@@ -636,6 +668,7 @@
           <p class="sms-explanation">"${explanation}"</p>
           <div class="shap-factors-list">${reasons}</div>
         `;
+        scrollToResult();
       }
 
       // 6. Render Result in Exact Required Order
@@ -647,40 +680,55 @@
         const pct = Math.min(Math.max(data.probability * 100, 0), 100);
         document.getElementById('scoreNumericVal').textContent = `${(data.probability * 100).toFixed(1)}%`;
         document.getElementById('gaugeFill').style.width = `${pct}%`;
-        document.getElementById('scoreCutoffText').textContent = `Cutoff: ${(data.threshold * 100).toFixed(0)}%`;
+        document.getElementById('scoreCutoffText').textContent = `Threshold: ${(data.threshold * 100).toFixed(0)}%`;
         document.getElementById('gaugeCutoffLine').style.left = `${Math.min(data.threshold * 100, 100)}%`;
 
-        // 2. Action Result as ONE clear line
+        // 2. Plain-language action summary
         const actionLine = document.getElementById('resultActionLine');
         if (data.action_type === 'cooling_off') {
           actionLine.className = 'result-action-line action-cooling';
-          actionLine.innerHTML = `&rarr; Cooling-off, ${data.duration_hours || 2} hours`;
+          actionLine.innerHTML = `&rarr; Short cooling-off delay — not blocked; you can confirm and continue immediately.`;
         } else if (data.action_type === 'advisory_only') {
           actionLine.className = 'result-action-line action-advisory';
-          actionLine.innerHTML = `&rarr; Advisory notice`;
+          actionLine.innerHTML = `&rarr; Advisory note — take a moment to check the payment details.`;
         } else {
           actionLine.className = 'result-action-line action-cleared';
-          actionLine.innerHTML = `&rarr; Cleared, no action`;
+          actionLine.innerHTML = `&rarr; No action — the payment looks consistent with usual behavior.`;
         }
 
-        // 3. Narration text + Source tag
-        document.getElementById('narrationText').textContent = `"${data.narration}"`;
+        // 3. Plain-language reasons
+        document.getElementById('narrationText').textContent = data.narration || 'The score reflects the transaction signals checked by Themis.';
+        const plainReasons = document.getElementById('plainReasonsList');
+        plainReasons.innerHTML = '';
+        (data.top_features || []).slice(0, 3).forEach(f => {
+          const item = document.createElement('div');
+          item.className = 'plain-reason-item';
+          item.textContent = `${plainReason(f.feature, f.value)}`;
+          plainReasons.appendChild(item);
+        });
+        if (!plainReasons.children.length) {
+          plainReasons.innerHTML = '<span class="plain-reason-empty">No individual factors were returned.</span>';
+        }
+
+        // 4. Technical detail source label
         const sourceTag = document.getElementById('narrationSourceTag');
         const src = (data.narration_source || 'template').toLowerCase();
         sourceTag.textContent = src.startsWith('gemini') ? 'gemini' : (src.startsWith('groq') ? 'groq' : 'template');
 
-        // 4. Top 3 SHAP factors as horizontal list
-        const shapList = document.getElementById('shapFactorsList');
-        shapList.innerHTML = '';
-        if (data.top_features && data.top_features.length > 0) {
-          data.top_features.slice(0, 3).forEach(f => {
+        const technicalList = document.getElementById('technicalDetailsList');
+        technicalList.innerHTML = '';
+        const modelItem = document.createElement('div');
+        modelItem.className = 'technical-feature-item';
+        modelItem.textContent = `Model output: probability ${data.probability.toFixed(6)} | version ${data.model_version || 'not reported'}`;
+        technicalList.appendChild(modelItem);
+        (data.top_features || []).slice(0, 3).forEach(f => {
             const item = document.createElement('div');
-            item.className = 'shap-pill';
+            item.className = 'technical-feature-item';
             const sign = f.contribution >= 0 ? '+' : '';
-            item.innerHTML = `<span class="shap-pill-name">${formatFeatureName(f.feature)}</span> <span class="shap-pill-val ${f.contribution >= 0 ? 'pos' : 'neg'}">${sign}${f.contribution.toFixed(2)}</span>`;
-            shapList.appendChild(item);
-          });
-        }
+            item.textContent = `${f.feature}: value ${f.value}, contribution ${sign}${f.contribution.toFixed(2)}`;
+            technicalList.appendChild(item);
+        });
+        if (!technicalList.children.length) technicalList.innerHTML = '<span>Technical feature output was not returned.</span>';
 
         // 5. Release now control (compact, only for cooling_off)
         const releaseBox = document.getElementById('releaseControlBox');
@@ -764,6 +812,8 @@
           if (!res.ok) throw new Error('Audit trail not found');
           const d = await res.json();
           timeline.innerHTML = '';
+          const technical = document.getElementById('auditTechnicalList');
+          technical.innerHTML = '';
           const descriptions = {
             SCORE_COMPUTED: 'The transaction was scored by the risk model.',
             COOLING_OFF_ISSUED: 'A reversible cooling-off delay was issued for this payment.',
@@ -775,16 +825,20 @@
           };
           d.events.forEach((ev, index) => {
             const item = document.createElement('div');
-            item.className = `audit-row-item${index < d.events.length - 1 ? ' audit-row-item--connected' : ''}`;
+            item.className = `audit-timeline-item${index < d.events.length - 1 ? ' audit-timeline-item--connected' : ''}`;
             item.innerHTML = `
-              <div class="audit-row-top">
-                <span class="audit-event-name font-mono">${ev.event_type}</span>
+              <div class="audit-timeline-time">${ev.created_at}</div>
+              <div class="audit-timeline-what">
+                <strong>${descriptions[ev.event_type] || 'An audit event was recorded.'}</strong>
                 <span class="audit-event-ts">${ev.created_at}</span>
               </div>
-              <div class="audit-event-description">${descriptions[ev.event_type] || 'An audit event was recorded for this transaction.'}</div>
-              <div class="audit-row-hash font-mono" title="${ev.row_hash}">Hash: ${ev.row_hash.substring(0, 10)}... <span class="audit-hash-hint">hover for full hash</span></div>
             `;
             timeline.appendChild(item);
+
+            const detail = document.createElement('div');
+            detail.className = 'audit-technical-item font-mono';
+            detail.textContent = `${ev.event_type} | row hash: ${ev.row_hash}`;
+            technical.appendChild(detail);
           });
         } catch (e) {
           timeline.innerHTML = `<div style="color: var(--danger); font-size: 0.8rem;">${e.message}</div>`;
@@ -827,6 +881,7 @@
         document.getElementById('btnRunPresetDetection').addEventListener('click', () => runDetection('preset'));
         document.getElementById('btnRunCustomDetection').addEventListener('click', () => runDetection('custom'));
         document.getElementById('btnCheckSms').addEventListener('click', renderSmsResult);
+        document.getElementById('payeeNoveltyDays').addEventListener('input', updateReceiverTenureHelp);
 
         // Escape controls
         document.getElementById('btnRequestOtp').addEventListener('click', handleRequestOtp);

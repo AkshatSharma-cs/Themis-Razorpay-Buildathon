@@ -62,7 +62,7 @@
         <article class="arch-card glass-panel animate-fade-in delay-1">
           <h2 class="arch-card-title font-display">The problem</h2>
           <p class="arch-card-text">
-            Banks and payment apps mostly catch unauthorized fraud — a stolen password, a hacked account. They largely miss authorized-but-deceived fraud, where the real account holder is coerced into paying willingly. RBI now classifies these as fraud too, but the detection gap remains.
+            Banks and payment apps mostly catch unauthorized fraud — a stolen password, a hacked account. They largely miss authorized-but-deceived fraud, where the real account holder is coerced into paying willingly. RBI (Reserve Bank of India, the country's central bank) now classifies these as fraud too, but the detection gap remains.
           </p>
         </article>
 
@@ -78,7 +78,7 @@
         <article class="arch-card glass-panel animate-fade-in delay-3">
           <h2 class="arch-card-title font-display">How it decides</h2>
           <p class="arch-card-text">
-            A LightGBM model, calibrated with Platt scaling, scores each transaction. The threshold is chosen by minimizing real cost — weighing the friction of a false alarm against the loss of a missed scam — not by chasing the highest accuracy number.
+            A LightGBM model (a machine-learning model built from many small decision trees), calibrated with Platt scaling (a method that makes its 0-100% risk scores better match real-world probabilities), scores each transaction. The threshold is chosen by minimizing real cost — weighing the friction of a false alarm against the loss of a missed scam — not by chasing the highest accuracy number.
           </p>
         </article>
 
@@ -86,7 +86,7 @@
         <article class="arch-card glass-panel animate-fade-in delay-4">
           <h2 class="arch-card-title font-display">What it's allowed to do</h2>
           <p class="arch-card-text">
-            A single Python invariant enforces this: Themis can only ever issue a bounded cooling-off delay or an advisory notice. It cannot block a payment, reverse funds, or touch another account — that boundary is checked in code on every decision, not just documented.
+            A single Python invariant (a rule enforced directly in code) enforces this: Themis can only ever issue a bounded cooling-off delay or an advisory notice. It cannot block a payment, reverse funds, or touch another account — that boundary is checked in code on every decision, not just documented.
           </p>
         </article>
 
@@ -114,6 +114,7 @@
 
     // Health Status Check with Auto-Retry
     let healthTimer = null;
+    let healthRetryStartedAt = Date.now();
     async function checkHealth() {
       const urlParams = new URLSearchParams(window.location.search);
       const apiBase = urlParams.get('api') || sessionStorage.getItem('themis_api_base') || 'https://themis-razorpay-buildathon.onrender.com';
@@ -132,13 +133,20 @@
         }
         dot.className = 'pulse-dot';
         pill.className = 'nav-status';
+        healthRetryStartedAt = Date.now();
 
         if (healthTimer) clearTimeout(healthTimer);
         healthTimer = setTimeout(checkHealth, 30000);
       } catch (e) {
-        text.textContent = 'Backend unreachable';
-        dot.className = 'pulse-dot danger';
-        pill.className = 'nav-status offline';
+        if (Date.now() - healthRetryStartedAt < 60000) {
+          text.textContent = 'Waking up the server — first load can take a minute';
+          dot.className = 'pulse-dot waking';
+          pill.className = 'nav-status waking';
+        } else {
+          text.textContent = 'Backend unreachable';
+          dot.className = 'pulse-dot danger';
+          pill.className = 'nav-status offline';
+        }
 
         if (healthTimer) clearTimeout(healthTimer);
         healthTimer = setTimeout(checkHealth, 4000);
