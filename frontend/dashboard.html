@@ -483,6 +483,12 @@
         return reasons[feature] || `Signal checked: ${formatFeatureName(feature)}.`;
       }
 
+      function formatAuditTime(timestamp) {
+        const date = new Date(timestamp);
+        if (Number.isNaN(date.getTime())) return timestamp || 'Unknown time';
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      }
+
       // 3. Populate Advanced Form
       function syncPresetToForm(key) {
         const p = PRESETS[key].payload;
@@ -698,7 +704,11 @@
         }
 
         // 3. Plain-language reasons
-        document.getElementById('narrationText').textContent = data.narration || 'The score reflects the transaction signals checked by Themis.';
+        const narration = data.narration || 'The score reflects the transaction signals checked by Themis.';
+        const hasRawFeature = /\b(?:log_amount|amount|call_minutes|payee_novelty_days|payee_account_age_days|payee_name_match_score|hour_of_day|amount_p95_ratio|roundness_score|fresh_device_flag|screen_share_flag|otp_share_flag|session_language_mismatch_flag|user_txn_count_last_1h|user_txn_count_last_24h|time_since_last_txn_hours|day_of_week|shopping_category_code|instrument_type_code)\b/.test(narration);
+        document.getElementById('narrationText').textContent = hasRawFeature
+          ? 'The score reflects the transaction signals checked by Themis.'
+          : narration;
         const plainReasons = document.getElementById('plainReasonsList');
         plainReasons.innerHTML = '';
         (data.top_features || []).slice(0, 3).forEach(f => {
@@ -829,10 +839,10 @@
             const item = document.createElement('div');
             item.className = `audit-timeline-item${index < d.events.length - 1 ? ' audit-timeline-item--connected' : ''}`;
             item.innerHTML = `
-              <div class="audit-timeline-time">${ev.created_at}</div>
+              <div class="audit-timeline-time">${formatAuditTime(ev.created_at)}</div>
               <div class="audit-timeline-what">
                 <strong>${descriptions[ev.event_type] || 'An audit event was recorded.'}</strong>
-                <span class="audit-event-ts">${ev.created_at}</span>
+                <span class="audit-event-ts">${formatAuditTime(ev.created_at)}</span>
               </div>
             `;
             timeline.appendChild(item);

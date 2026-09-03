@@ -48,7 +48,7 @@ def _humanize_feature(feature_name: str, value: Any, contribution: float) -> str
     """Best-effort plain-English phrasing for one SHAP feature."""
     lookup = {
         "is_new_payee": "new payee (first transaction to this VPA)",
-        "call_overlap": "a phone call with an unknown number overlapping the payment",
+        "call_overlap": "a phone call overlapping the payment",
         "amount_ratio_to_avg": "an amount far above your typical spend",
         "device_change": "a payment made from an unrecognized device",
         "txn_hour_unusual": "a transaction time outside your normal pattern",
