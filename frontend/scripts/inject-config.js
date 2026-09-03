@@ -1,9 +1,9 @@
-// scripts/inject-config.js
+// frontend/scripts/inject-config.js
 const fs = require('fs');
 const path = require('path');
 
-const template = path.join(__dirname, '..', 'frontend', 'config.template.js');
-const output = path.join(__dirname, '..', 'frontend', 'config.js');
+const template = path.join(__dirname, '..', 'config.template.js');   // frontend/config.template.js
+const output = path.join(__dirname, '..', 'config.js');              // frontend/config.js
 const apiBase = process.env.SENTINEL_API_BASE || 'https://themis-razorpay-buildathon.onrender.com';
 
 const contents = fs.readFileSync(template, 'utf8')
