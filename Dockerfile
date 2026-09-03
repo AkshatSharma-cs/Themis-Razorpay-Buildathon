@@ -1,4 +1,4 @@
-# Themis — HF Spaces (Docker SDK, CPU Basic, free tier)
+# Themis — Render Free web service container
 FROM python:3.13-slim
 
 # --- system deps ------------------------------------------------------------
@@ -37,13 +37,13 @@ ENV THEMIS_METRICS_PATH=/app/ml/artifacts/metrics.json
 # hardcoded 8-column feature_order list when this file is absent.
 # ENV THEMIS_FEATURES_PATH=/app/ml/artifacts/feature_order.json
 
-# Anthropic-unrelated demo API keys — set as HF Spaces "Repository secrets",
+# Demo API keys — set as Render environment variables,
 # never baked into the image. Listed here only as documentation of what the
 # app expects to find in its environment at runtime.
-# ENV GEMINI_API_KEY=   (set via HF Spaces Settings > Repository secrets)
-# ENV GROQ_API_KEY=     (set via HF Spaces Settings > Repository secrets)
+# ENV GEMINI_API_KEY=   (set in the Render service environment)
+# ENV GROQ_API_KEY=     (set in the Render service environment)
 
-# HF Spaces' Docker SDK routes traffic to port 7860 specifically.
+# Render provides PORT at runtime; 7860 remains the local fallback.
 EXPOSE 7860
 
-CMD ["uvicorn", "backend.serve:app", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["sh", "-c", "uvicorn backend.serve:app --host 0.0.0.0 --port ${PORT:-7860}"]

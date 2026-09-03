@@ -1336,29 +1336,6 @@ body:has(.main-content--console) #wutheringCanvas {
   overflow-wrap: anywhere;
 }
 
-.scoring-guide-panel {
-  border: 1px solid var(--gold-border);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
-  color: var(--text-light);
-  text-shadow: 0 2px 7px rgba(0, 0, 0, 0.95);
-}
-
-.scoring-guide-panel .zone-title {
-  color: var(--gold-bright);
-  margin-bottom: 0.85rem;
-}
-
-.scoring-guide-list {
-  display: grid;
-  gap: 0.6rem;
-  margin: 0;
-  padding-left: 1.4rem;
-  color: var(--text-light);
-  font-size: 0.86rem;
-  line-height: 1.45;
-}
-
 .audit-header-row {
   display: flex;
   align-items: center;

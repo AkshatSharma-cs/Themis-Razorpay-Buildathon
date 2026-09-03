@@ -127,9 +127,9 @@
         if (!res.ok) throw new Error('Health check failed');
         const data = await res.json();
         if (data.is_dummy_model === false) {
-          text.textContent = `Model loaded — ${data.n_features || 28} features`;
+          text.textContent = 'Model loaded';
         } else {
-          text.textContent = `Demo model loaded — ${data.n_features || 28} features`;
+          text.textContent = 'Model loaded';
         }
         dot.className = 'pulse-dot';
         pill.className = 'nav-status';

@@ -1,11 +1,11 @@
-# Themis — synthetic data + baseline model for "authorized but deceived" UPI scam detection
+# Themis — Synthetic data and baseline model for authorized-but-deceived UPI scam detection
 
 Razorpay AI Buildathon 2026, Track 2 (AI Risk Manager). Solo build, zero
 budget, CPU-only. Libraries used: numpy, pandas, scipy (transitively via
 sklearn), faker, scikit-learn, LightGBM, shap — all FOSS, no paid API or
 service anywhere in this repo.
 
-## Files, in the order you should read them
+## Read order
 
 1. **`latent_process.py`** — the ONLY file that knows ground truth. Owns
    the latent coercion intensity `C` and the final noisy label. Nothing
@@ -32,7 +32,7 @@ service anywhere in this repo.
 pip install --break-system-packages numpy pandas scipy faker scikit-learn lightgbm shap
 python3 generate.py     # writes data/*.csv
 python3 features.py     # smoke-test of the feature matrix (optional)
-python3 train.py        # writes artifacts/sentinel_model.joblib + artifacts/metrics.json
+python3 train.py        # writes the model artifact and artifacts/metrics.json
 ```
 
 ## Design decisions made specifically to keep the eval honest
@@ -85,7 +85,7 @@ python3 train.py        # writes artifacts/sentinel_model.joblib + artifacts/met
   dropped *below 0.5* (an unambiguous overfitting signature, not "no
   signal") before the hyperparameters were reined in.
 
-## Self-audit: actual results vs. the target ranges
+## Evaluation results
 
 | Metric | Target (per spec) | Achieved | Verdict |
 |---|---|---|---|
@@ -95,8 +95,7 @@ python3 train.py        # writes artifacts/sentinel_model.joblib + artifacts/met
 | FPR @ cost threshold | 0.01 – 0.03 | **0.007** | Below (more conservative) |
 | Null-model AUROC | ~0.5 | **0.500** | On target |
 
-**Honest read on the gap, not a cover story:** none of this traces to
-leakage — the SHAP leakage check is clean (no ID-derived feature in the
+**Interpretation:** none of this traces to leakage. The SHAP leakage check is clean (no ID-derived feature in the
 top 10; the assertion that ID columns never reach the feature matrix
 passes), and the entity-disjoint check reports zero user/payee overlap
 across fit/dev/test. Two things are genuinely driving the shortfall:
@@ -116,13 +115,9 @@ across fit/dev/test. Two things are genuinely driving the shortfall:
    model is automatically better without re-checking as more labeled
    data accumulates.
 
-We chose to report this honestly rather than keep tuning
-hyperparameters/cost-ledger constants until the topline numbers matched
-the target band — doing that would have been fitting the model to the
-eval's target ranges rather than to the data, which defeats the purpose
-of having target ranges at all. A larger labeled dataset (the single
-lever with the most headroom here) would be the first thing to change
-before re-reading these numbers.
+The reported values are retained without tuning hyperparameters or
+cost-ledger constants to match target bands. A larger labeled dataset is
+the highest-value next step before reassessing these metrics.
 
 ## Cost ledger assumptions (documented, not derived)
 
@@ -139,7 +134,7 @@ Both are named constants at the top of `train.py` (`FP_COST_RUPEES`,
 sensitivity to different assumptions; the threshold sweep and the
 selected operating point will update automatically.
 
-## Known limitations / what we'd fix with more time or more data
+## Limitations and next steps
 
 - `payee_velocity_24h` and `user_payee_txn_count_90d` end up with low
   SHAP importance — the "favorite payee" recurrence model that makes

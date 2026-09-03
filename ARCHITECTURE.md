@@ -6,10 +6,8 @@ chargeback, touches a payee's account, or acts against any party other than show
 payer a warning. That line is enforced in code (`DefenseAction` in `serve.py`), not just
 described here.
 
-Every component below exists to solve a specific constraint of this build: zero budget,
-solo developer, a track disqualification line that must never be crossed, and a live demo
-that has to survive a flaky free-tier LLM call. Nothing here is included because it "sounds
-impressive."
+Each component addresses a project constraint: zero budget, CPU-only execution, the
+defense-only track requirement, and resilience to free-tier LLM failures.
 
 ---
 
@@ -18,12 +16,9 @@ impressive."
 **What it does:** exposes `/score`, `/decision`, `/release/*`, `/audit/*`, `/health`.
 
 **Why FastAPI over Gradio:** the deliverable is a decision *engine*, not a single UI screen.
-Judges, a hypothetical bank backend, and a future frontend all need typed, independently
-callable JSON endpoints — that's a REST API, not a Gradio app. FastAPI's free automatic
-`/docs` (OpenAPI/Swagger) doubles as a demo surface with zero extra work: you can literally
-run the whole score → decision → release flow from a browser during judging. If you later
-want a visual demo, build it as a thin client (Gradio, static HTML, whatever) that *calls*
-this API — don't fuse the two, or the API stops being independently testable.
+Judges, bank systems, and future clients require typed, independently callable JSON
+endpoints. FastAPI also generates OpenAPI/Swagger documentation at `/docs`, allowing the
+score, decision, release, and audit flows to be tested without coupling them to the UI.
 
 **Why the model loading has a dummy fallback:** the real LightGBM model and `metrics.json`
 come from a separate ML workstream. The service is written so it runs and is fully testable
@@ -99,15 +94,15 @@ strictly cosmetic/explanatory. It also completely derisks the demo — a Gemini 
 outage during judging cannot break the actual product.
 
 **Why Gemini primary, Groq fallback, template last:**
-- **Gemini (AI Studio, `gemini-2.0-flash`):** genuinely free forever, no card, generous
-  request quota, fast enough for a live per-request explanation.
+- **Gemini (AI Studio, `gemini-2.0-flash`):** available on a free tier without a card,
+  with sufficient quota for this demo.
 - **Groq:** also free/no-card, serves open-weight models (Llama) at very low latency —
   used only if Gemini errors or 429s, so the two failure modes (different vendors, different
   infra) are unlikely to fail together.
 - **Deterministic template (`deterministic_template`):** built directly from the same
   top-3 SHAP features every other layer uses, with zero network dependency. This is framed
-  as a **robustness feature**, not a degraded mode — it's arguably *more* trustworthy for an
-  audit trail than an LLM sentence, because it's 100% reproducible from the stored inputs.
+  as a **robustness feature**: it is reproducible from the stored inputs and suitable for
+  audit records.
   Every call goes through a hard per-provider timeout (`NARRATION_TIMEOUT_S`, default 4s)
   via a thread pool, so a hung request can't stall the response — worst case, the total
   narration step costs ~2×timeout before falling through to the template.
@@ -119,16 +114,11 @@ outage during judging cannot break the actual product.
 **Why SQLite instead of a hosted DB (Supabase/Postgres/Mongo Atlas free tier):**
 - **Cost/ops:** zero setup, zero external dependency, no risk of hitting a free-tier gotcha
   mid-demo. Supabase's free tier specifically auto-pauses a project after ~7 days of
-  inactivity — exactly the kind of thing that silently breaks a demo you haven't touched
-  in a week. SQLite has no such failure mode; the file just sits there.
-- **It's a legible security property, not just "cheaper":** an append-only file with a hash
-  chain is something a judge can understand and verify *by watching it happen* — run
-  `verify_chain()`, then hand-edit one row with a raw SQL `UPDATE`, then run `verify_chain()`
-  again and watch it flip to `ok: false` and point at the exact row. That's a concrete,
-  demoable claim ("here's how I'd catch someone editing the audit log after the fact") that
-  a hosted DB with row-level ACLs doesn't give you for free — ACLs stop *future* writes,
-  they don't prove *past* rows weren't altered by someone with DB access (an insider, a
-  compromised admin account, a support engineer with a console).
+  inactivity. SQLite avoids that operational dependency for the demo.
+- **Auditability:** an append-only file with a hash chain can be verified with
+  `verify_chain()`. Modifying a historical row with SQL and rerunning verification changes
+  the result to `ok: false` and identifies the broken row. Row-level ACLs restrict future
+  writes but do not establish that historical rows were not altered.
 
 **How the chain works:** each row stores
 `row_hash = SHA256(prev_hash | event_id | tx_id | payer_vpa | event_type | canonical_json(payload) | created_at)`.
@@ -143,37 +133,44 @@ to eventually show or export is a liability with no benefit.
 
 ---
 
-## 5. Deployment — free tier only, no card anywhere
+## 5. Deployment — Render backend + Vercel frontend
 
-**Primary: Hugging Face Spaces, CPU Basic tier.** Free forever, no card required, 2 vCPU /
-16 GB RAM — comfortably enough for FastAPI + LightGBM + SHAP on CPU. Use the Docker SDK
-(a `Dockerfile` that runs `uvicorn serve:app --host 0.0.0.0 --port 7860`) so you have full
-control over dependencies (`shap`, `lightgbm`, `google-generativeai`, `groq`) rather than
-fighting the Gradio/Streamlit SDK templates.
+**Backend: Render Free web service.** The FastAPI service runs on Render's free web-service
+tier, with no card required for this project. The Docker image keeps the CPU-only runtime
+and its dependencies (`shap`, `lightgbm`, `google-generativeai`, and `groq`) together. Render
+starts Uvicorn on the platform-provided `PORT` value and exposes the live API at:
+`https://themis-razorpay-buildathon.onrender.com`.
 
-> **Demo reminder:** CPU Basic Spaces sleep after ~48h of no traffic. **Before recording or
-> presenting, load the Space URL yourself and wait for it to finish waking up** (can take
-> 30–60s from cold) — do this a few minutes before you actually need it live, not in front
-> of the judges.
+**Free-tier tradeoff:** Render spins a Free web service down after 15 minutes without
+inbound traffic. The next HTTP request starts it again and the cold start takes about one
+minute. The frontend health badge therefore distinguishes a short-lived amber
+"Waking up the server" state from a genuine failure. Render also uses an ephemeral local
+filesystem for Free web services, so the SQLite audit file is suitable for a demo but is
+not durable storage across restarts, deploys, or spin-downs. A production deployment would
+move the audit store to durable managed storage and use a paid or otherwise persistent
+service plan.
 
-**Optional: static landing/architecture page — Cloudflare Pages + Workers.** Free, no card,
-generous request limits. Use this only if you want a separate marketing/architecture page
-distinct from the live app (e.g. a one-pager linking to the HF Space, this ARCHITECTURE.md
-rendered nicely, and a diagram). It should not host any part of the actual scoring logic —
-keep the decision engine in one place (the HF Space) so the tamper-evident audit log has a
-single source of truth.
+**Frontend: Vercel Free plan.** The static HTML, CSS, and JavaScript frontend is deployed as
+a Vercel static site. Vercel provides the public frontend URL and serves the files globally;
+it does not run the scoring model. The frontend calls the Render API through the configurable
+`THEMIS_API_BASE` value in `frontend/config.template.js`; the injection script can generate
+the deployment config from the Vercel environment. The legacy inline demo pages also retain
+the same Render URL as a fallback, so replacing those fallbacks is a separate frontend
+cleanup rather than part of this documentation-only task.
+
+**Why this arrangement:** both services provide a practical no-card path for a zero-budget
+hackathon demo, while keeping the decision engine and its audit chain in one backend. The
+tradeoff is cold-start latency and ephemeral local state on Render's Free service, plus the
+need to configure CORS and the API key for cross-origin Vercel requests. See `API.md` for
+the deployed contract and integration examples.
 
 **Explicitly rejected, and why:**
-- *Supabase (hosted Postgres) free tier* — auto-pauses after 7 days idle; wrong tool anyway
-  since the hash chain is the differentiator, not relational features we don't need.
-- *Any "free trial requiring a card"* (Railway, Render's card-gated tiers, most cloud
-  provider "free credits," MongoDB Atlas in some regions) — flagged and avoided outright.
-  If you hit a wall on HF Spaces (e.g. need GPU), the FOSS alternative is to keep everything
-  CPU-only — LightGBM + SHAP don't need a GPU — rather than reaching for a paid tier.
-- *A managed SMS/OTP provider for `/release/request-otp`* — every free tier we found
-  requires a card or business KYC. The demo returns the OTP directly in the API response,
-  clearly labeled `otp_demo_only`, with a one-line note on swapping in a real provider
-  (MSG91 / Twilio Verify) later — the rest of the release flow doesn't change.
+- *Supabase (hosted Postgres) free tier* — unnecessary for this SQLite-backed demo because
+  the hash chain is the differentiator, not relational features.
+- *Paid trials or card-gated infrastructure* — outside the project's no-card constraint.
+- *A managed SMS/OTP provider for `/release/request-otp`* — the demo returns an OTP directly
+  as `otp_demo_only`; a production provider would require separate security and compliance
+  work.
 
 ---
 
@@ -187,5 +184,5 @@ single source of truth.
 | SHAP top-3 | Exact, model-native explanations feeding both narration and audit |
 | Gemini → Groq → template narration | Free, fast, and — critically — never on the critical path of the actual decision |
 | SQLite + hash chain | Zero-cost, zero-ops, and a demoable tamper-evidence property a hosted DB's ACLs don't give you |
-| HF Spaces (CPU Basic) | Free-forever hosting sized for LightGBM + SHAP on CPU |
-| Cloudflare Pages (optional) | Separate static surface, kept out of the decision engine's single source of truth |
+| Render Free web service | No-card FastAPI hosting for LightGBM + SHAP, with cold starts and ephemeral local state |
+| Vercel Free static site | Global hosting for the frontend, kept separate from the decision engine |

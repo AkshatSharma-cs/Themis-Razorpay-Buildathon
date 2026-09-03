@@ -253,14 +253,6 @@
           </div>
         </section>
 
-        <section class="scoring-guide-panel" aria-labelledby="scoringGuideTitle">
-          <h2 id="scoringGuideTitle" class="zone-title">How Scoring Works</h2>
-          <ol class="scoring-guide-list">
-            <li>Transaction details are sent to the live model.</li>
-            <li>The model returns a risk score and its top reasons.</li>
-            <li>Themis decides: no action, an advisory note, or a short cooling-off delay.</li>
-          </ol>
-        </section>
         </div>
 
       </div>
@@ -471,13 +463,22 @@
           otp_share_flag: 'A one-time password may have been shared.',
           amount_p95_ratio: 'The amount is higher than this sender usually pays.',
           amount: 'The payment amount is unusual for this sender.',
+          log_amount: 'The payment amount is well above what this sender normally sends.',
           payee_novelty_days: 'This receiver is new or not well established in the sender history.',
+          payee_account_age_days: 'The receiver account is very new.',
           fresh_device_flag: 'The payment came from a recently changed or reinstalled device.',
           hour_of_day: 'The payment happened at an unusual time.',
           payee_velocity_24h: 'This receiver has seen an unusual burst of payments.',
           payee_name_match_score: 'The receiver details do not closely match the expected name.',
           session_language_mismatch_flag: 'The session used an unfamiliar language or accent.',
-          user_mean_amt_90d: 'The amount is above the sender\'s usual payment size.'
+          user_mean_amt_90d: 'The amount is above the sender\'s usual payment size.',
+          roundness_score: 'The amount is a suspiciously round number.',
+          user_txn_count_last_1h: 'Several payments happened in a short window.',
+          user_txn_count_last_24h: 'Several payments happened in a short window.',
+          time_since_last_txn_hours: 'This followed very soon after another payment.',
+          day_of_week: 'Minor contextual factors about when the payment happened.',
+          shopping_category_code: 'Minor contextual factors about the payment category.',
+          instrument_type_code: 'Minor contextual factors about the payment method.'
         };
         return reasons[feature] || `Signal checked: ${formatFeatureName(feature)}.`;
       }
@@ -556,9 +557,9 @@
           if (gaugeLine) gaugeLine.style.left = `${Math.min(modelThreshold * 100, 100)}%`;
 
           if (data.is_dummy_model === false) {
-            text.textContent = `Model loaded — ${data.n_features || 28} features`;
+            text.textContent = 'Model loaded';
           } else {
-            text.textContent = `Demo model loaded — ${data.n_features || 28} features`;
+            text.textContent = 'Model loaded';
           }
           dot.className = 'pulse-dot';
           pill.className = 'nav-status';
@@ -719,13 +720,14 @@
         technicalList.innerHTML = '';
         const modelItem = document.createElement('div');
         modelItem.className = 'technical-feature-item';
-        modelItem.textContent = `Model output: probability ${data.probability.toFixed(6)} | version ${data.model_version || 'not reported'}`;
+        modelItem.textContent = `Model output: probability ${(data.probability * 100).toFixed(2)}% | version ${data.model_version || 'not reported'}`;
         technicalList.appendChild(modelItem);
         (data.top_features || []).slice(0, 3).forEach(f => {
             const item = document.createElement('div');
             item.className = 'technical-feature-item';
             const sign = f.contribution >= 0 ? '+' : '';
-            item.textContent = `${f.feature}: value ${f.value}, contribution ${sign}${f.contribution.toFixed(2)}`;
+            const value = typeof f.value === 'number' ? f.value.toFixed(2) : f.value;
+            item.textContent = `${f.feature}: value ${value}, contribution ${sign}${f.contribution.toFixed(2)}`;
             technicalList.appendChild(item);
         });
         if (!technicalList.children.length) technicalList.innerHTML = '<span>Technical feature output was not returned.</span>';
@@ -888,7 +890,6 @@
         document.getElementById('btnConfirmRelease').addEventListener('click', handleConfirmRelease);
 
         // Audit controls
-        document.getElementById('btnOpenAudit').addEventListener('click', openAuditTrail);
         document.getElementById('btnVerifyIntegrity').addEventListener('click', verifyIntegrity);
       }
 

@@ -54,11 +54,30 @@ def _humanize_feature(feature_name: str, value: Any, contribution: float) -> str
         "txn_hour_unusual": "a transaction time outside your normal pattern",
         "payee_reported_count": "this payee has prior fraud reports",
         "sim_swap_recent": "a recent SIM swap on the account",
+        "log_amount": "a payment amount well above what this person normally sends",
+        "amount": "a payment amount well above what this person normally sends",
+        "call_overlap_flag": "an active phone call was happening during the payment",
+        "call_minutes": "an unusually long phone call during the payment",
+        "payee_novelty_days": "this is a brand-new or rarely-used recipient",
+        "payee_account_age_days": "the recipient's account is very new",
+        "payee_name_match_score": "the recipient's name does not closely match their registered UPI name",
+        "hour_of_day": "the payment happened at an unusual time of day",
+        "amount_p95_ratio": "the amount is far above this person's typical high-end spending",
+        "roundness_score": "the amount is a suspiciously round number",
+        "fresh_device_flag": "a recently reinstalled or new device",
+        "screen_share_flag": "a screen-sharing session was active",
+        "otp_share_flag": "a one-time password may have been shared",
+        "session_language_mismatch_flag": "the session language did not match the user's usual language",
+        "user_txn_count_last_1h": "several payments happened in a short window",
+        "user_txn_count_last_24h": "several payments happened in a short window",
+        "time_since_last_txn_hours": "this followed very soon after another payment",
+        "day_of_week": "minor contextual factors about when the payment happened",
+        "shopping_category_code": "minor contextual factors about the payment category",
+        "instrument_type_code": "minor contextual factors about the payment method",
     }
     if feature_name in lookup:
         return lookup[feature_name]
-    direction = "increased" if contribution > 0 else "decreased"
-    return f"'{feature_name}' (value={value}), which {direction} the risk score"
+    return "a combination of smaller contextual signals"
 
 
 def deterministic_template(
@@ -132,7 +151,7 @@ def _call_groq(prompt: str) -> str:
 
 def _build_prompt(top_shap_features: list[dict], probability: float, action_type: str) -> str:
     feat_lines = "\n".join(
-        f"- {f['feature']}: value={f.get('value')}, contribution={f['contribution']:+.3f}"
+        f"- {_humanize_feature(f['feature'], f.get('value'), f['contribution'])}"
         for f in top_shap_features[:3]
     )
     return (
