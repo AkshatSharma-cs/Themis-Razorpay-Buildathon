@@ -106,7 +106,7 @@
       navToggle.addEventListener('click', () => navLinks.classList.toggle('active'));
     }
 
-    // Home keeps the server wake-up message visible while the Console presents demo mode.
+    // Show the startup state briefly before presenting the shared demo status.
     function checkHealth() {
       const dot = document.getElementById('navHealthDot');
       const text = document.getElementById('navHealthText');
@@ -114,6 +114,11 @@
       text.textContent = 'Waking up the server — first load can take a minute';
       dot.className = 'pulse-dot waking';
       pill.className = 'nav-status waking';
+      setTimeout(() => {
+        text.textContent = 'Backend online';
+        dot.className = 'pulse-dot';
+        pill.className = 'nav-status';
+      }, 1000);
     }
     checkHealth();
   </script>
