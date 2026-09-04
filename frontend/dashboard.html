@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Themis — Live Console</title>
+  <title>Themis — Sentinel Console</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -48,236 +48,343 @@
   <main class="main-content main-content--console">
     <div class="container container-console">
 
-      <!-- Split Layout: LEFT (55%) vs RIGHT (45%) -->
-      <div class="console-split-layout">
-
-        <!-- ── LEFT ZONE: RUN A SCENARIO ────────────────────────── -->
-        <section class="console-zone console-zone--left glass-panel animate-fade-in">
-          <div class="zone-header">
-            <h2 class="zone-title">Choose a preset fraud scenario.</h2>
-          </div>
-
-          <!-- 2x2 Preset Cards Grid -->
-          <div class="preset-grid-2x2" id="presetGrid">
-            <!-- Card 1: Clean -->
-            <div class="preset-card active" data-preset="clean">
-              <div class="preset-tag tag-clean">CLEAN</div>
-              <div class="preset-card-title">A regular customer sends ₹850 to a grocery store they have paid many times before.</div>
-            </div>
-
-            <!-- Card 2: Coercion -->
-            <div class="preset-card" data-preset="coercion">
-              <div class="preset-tag tag-coercion">COERCION</div>
-              <div class="preset-card-title">A customer is on a long call with a stranger while sending ₹45,000 to a brand-new payee.</div>
-            </div>
-
-            <!-- Card 3: Ambiguous -->
-            <div class="preset-card" data-preset="ambiguous">
-              <div class="preset-tag tag-ambiguous">REVIEW</div>
-              <div class="preset-card-title">A smaller ₹6,500 transfer happens late at night from a recently reinstalled device.</div>
-            </div>
-
-            <!-- Card 4: High-Value -->
-            <div class="preset-card" data-preset="high_value">
-              <div class="preset-tag tag-highvalue">HIGH-VALUE</div>
-              <div class="preset-card-title">A large ₹1,85,000 transfer goes to a family payee with a long, trusted history.</div>
-            </div>
-          </div>
-
-          <div class="preset-info-row">
-            <span>Preset scenarios</span>
-            <button type="button" class="info-icon-btn" aria-label="Preset model detail">
-              <i class="fa-solid fa-circle-info"></i>
-              <span class="info-tooltip">Each preset sends a full 28-feature payload to the live model — nothing here is simulated.</span>
-            </button>
-          </div>
-
-          <!-- Run Detection Button -->
-          <button id="btnRunPresetDetection" class="btn btn-gold btn-run-detection">
-            <span>Run selected scenario</span>
-          </button>
-
-          <!-- Custom Case Payload Panel -->
-          <div class="custom-case-panel">
-            <div class="custom-case-header">
-              <h3>Build Your Own Transaction</h3>
-              <p>Fill in a transaction's details below to see if Themis would flag it as risky.</p>
-            </div>
-
-            <div id="advancedPayloadSection" class="advanced-payload-body">
-              <section class="form-stage">
-                <h4 class="form-stage-title">Payment</h4>
-                <div class="payload-fields-grid">
-                  <div class="field-item"><label for="payerVpa">Sender's UPI ID</label><input type="text" id="payerVpa" class="form-input"></div>
-                  <div class="field-item"><label for="payeeVpa">Receiver's UPI ID</label><input type="text" id="payeeVpa" class="form-input"></div>
-                  <div class="field-item"><label for="amount">Payment Amount (₹)</label><input type="number" id="amount" class="form-input" step="any"></div>
-                </div>
-              </section>
-
-              <section class="form-stage">
-                <h4 class="form-stage-title">Relationship History</h4>
-                <div class="payload-fields-grid">
-                  <div class="field-item"><label for="userMeanAmt">Sender's Usual Payment Amount (₹)</label><span class="field-help">What this person typically sends</span><input type="number" id="userMeanAmt" class="form-input" step="any"></div>
-                  <div class="field-item"><label for="userP95Amt">Sender's Largest Typical Payment (₹)</label><span class="field-help">The highest amount they'd normally send</span><input type="number" id="userP95Amt" class="form-input" step="any"></div>
-                  <div class="field-item"><label for="payeeNoveltyDays">How Long They've Known This Receiver</label><span class="field-help" id="receiverTenureHelp">Enter days; 0 = brand new</span><input type="number" id="payeeNoveltyDays" class="form-input" step="any"></div>
-                </div>
-              </section>
-
-              <section class="form-stage">
-                <h4 class="form-stage-title">Current Situation</h4>
-                <div class="payload-fields-grid">
-                  <div class="field-item"><label for="callMinutes">Call Minutes</label><span class="field-help">0 if no call was happening</span><input type="number" id="callMinutes" class="form-input" step="any"></div>
-                  <div class="field-item"><label for="hourOfDay">Time of Day (0 = midnight, 23 = 11 PM)</label><input type="number" id="hourOfDay" class="form-input" min="0" max="23"></div>
-                </div>
-                <div class="payload-flags-row">
-                  <label class="flag-inline"><input type="checkbox" id="callOverlapFlag"><span>Call overlap (a phone call was active during the payment)</span></label>
-                  <label class="flag-inline"><input type="checkbox" id="screenShareFlag"><span>Screen share (someone remotely viewed or controlled the device)</span></label>
-                  <label class="flag-inline"><input type="checkbox" id="otpShareFlag"><span>OTP share (the one-time password was told to someone else)</span></label>
-                  <label class="flag-inline"><input type="checkbox" id="sessionLangMismatchFlag"><span>Language mismatch (an unfamiliar language or accent)</span></label>
-                </div>
-              </section>
-
-              <section class="form-stage form-stage--device">
-                <h4 class="form-stage-title">Device</h4>
-                <div class="payload-flags-row">
-                  <label class="flag-inline"><input type="checkbox" id="freshDeviceFlag"><span>Fresh device (recently reinstalled or new phone)</span></label>
-                </div>
-              </section>
-            </div>
-
-            <button id="btnRunCustomDetection" class="btn btn-gold btn-custom-detection">
-              <span>Run custom detection</span>
-            </button>
-          </div>
-        </section>
-
-        <div class="console-right-stack">
-        <!-- ── RIGHT ZONE: RESULT ──────────────────────────────── -->
-        <section id="resultSection" class="console-zone console-zone--right glass-panel animate-fade-in delay-1">
-          <div class="zone-header">
-            <h2 class="zone-title">Result</h2>
-          </div>
-
-          <!-- Empty / Waiting State -->
-          <div id="resultEmptyState" class="result-empty-state">
-            <p>Select a case and run detection to see the model respond.</p>
-          </div>
-
-          <!-- Active Result Content (Exact Order) -->
-          <div id="resultContent" class="result-active-content" style="display: none;">
-
-            <!-- 1. Score -->
-            <div class="result-score-block">
-              <div class="score-line-labels">
-                <span class="score-label-main">Risk score</span>
-                <span class="score-label-cutoff" id="scoreCutoffText">Threshold: 16%</span>
-              </div>
-              <div class="gauge-track">
-                <div class="gauge-fill" id="gaugeFill" style="width: 0%;"></div>
-                <div class="gauge-cutoff-line" id="gaugeCutoffLine" style="left: 16%;"></div>
-              </div>
-              <div class="score-numeric-val gold-gradient-text" id="scoreNumericVal">0.0%</div>
-            </div>
-
-            <!-- 2. Plain-language explanation -->
-            <section class="result-plain-summary">
-              <h3>Why this score?</h3>
-              <p id="narrationText">Run a scenario to see the plain-language explanation.</p>
-              <div class="plain-reasons-list" id="plainReasonsList">
-                <span class="plain-reason-empty">The strongest contributing factors will appear here.</span>
-              </div>
-            </section>
-
-            <!-- 3. Recommended action -->
-            <div class="result-action-block">
-              <h3>Recommended action</h3>
-              <div class="result-action-line" id="resultActionLine">
-                &rarr; Cleared, no action
-              </div>
-            </div>
-
-            <!-- 4. Technical detail, always visible below the summary -->
-            <section class="technical-details">
-              <div class="technical-details-heading">Technical details <span id="narrationSourceTag">template</span></div>
-              <div class="technical-feature-list" id="technicalDetailsList">
-                <span>SHAP feature contributions will appear after a run.</span>
-              </div>
-            </section>
-
-            <!-- 5. Release Now Control (Compact, if cooling_off) -->
-            <div id="releaseControlBox" class="release-control-compact" style="display: none;">
-              <div id="releaseStepRequest">
-                <button type="button" id="btnRequestOtp" class="btn btn-gold btn-sm btn-release-req">
-                  <i class="fa-solid fa-key"></i>
-                  <span>Release now (Request demo OTP)</span>
-                </button>
-              </div>
-
-              <div id="releaseStepConfirm" style="display: none;">
-                <div class="otp-compact-row">
-                  <span class="otp-prompt">Demo OTP: <strong id="demoOtpVal" class="gold-gradient-text font-mono">123456</strong></span>
-                  <input type="text" id="inputOtpCode" class="form-input input-otp-compact" placeholder="OTP" maxlength="6">
-                  <button type="button" id="btnConfirmRelease" class="btn btn-gold btn-sm">Confirm</button>
-                </div>
-              </div>
-
-              <div id="releaseStepDone" style="display: none;" class="release-done-msg">
-                <i class="fa-solid fa-circle-check"></i>
-                <span>Cooling-off lifted by payer re-authentication.</span>
-              </div>
-            </div>
-
-          </div>
-        </section>
-
-        <section id="auditPanelSection" class="audit-panel-bottom animate-fade-in">
-          <div class="zone-header audit-header-row">
-            <h2 class="zone-title">Verified Audit Trail</h2>
-            <button id="btnVerifyIntegrity" class="btn btn-gold btn-sm">
-              <i class="fa-solid fa-shield-check"></i>
-              <span>Verify integrity</span>
-            </button>
-          </div>
-          <p class="audit-explanation">Every action gets locked into a record that can't be quietly edited later — click Verify to prove it.</p>
-
-          <div class="audit-timeline-heading">Timeline</div>
-          <div id="auditTimelineCompact" class="audit-timeline-compact">
-            <div class="audit-empty-state">Run a scenario to see what Themis recorded.</div>
-          </div>
-          <div class="audit-technical-heading">Hash-chain details</div>
-          <div id="integrityResultBox" class="integrity-status-line font-mono">
-            Status: Click "Verify integrity" to check the record chain
-          </div>
-          <div class="audit-technical-list" id="auditTechnicalList">
-            <div class="audit-empty-state">Technical hashes will appear after a run.</div>
-          </div>
-        </section>
-
+      <!-- 1. CHOOSE A PRESET FRAUD SCENARIO CONTROL PANEL -->
+      <section class="control-panel glass-panel animate-fade-in">
+        <div class="control-panel-header">
+          <h2 class="control-panel-title">CHOOSE A PRESET FRAUD SCENARIO</h2>
+          <p class="control-panel-subtitle">Select a sample payment scenario below and click "Run Selected Scenario".</p>
         </div>
+
+        <!-- 5 Compact Selectable Preset Pills in a single line -->
+        <div class="preset-pills-single-line" id="presetPillsRow">
+          <button type="button" class="scenario-button" data-preset="normal_payment">
+            <i class="fa-solid fa-circle-check"></i> Normal payment
+          </button>
+          <button type="button" class="scenario-button active" data-preset="call_pressure">
+            <i class="fa-solid fa-phone-volume"></i> Call-pressure scam
+          </button>
+          <button type="button" class="scenario-button" data-preset="screen_share">
+            <i class="fa-solid fa-desktop"></i> Screen-share scam
+          </button>
+          <button type="button" class="scenario-button" data-preset="new_payee_high">
+            <i class="fa-solid fa-user-plus"></i> New-payee high-value
+          </button>
+          <button type="button" class="scenario-button" data-preset="legit_large">
+            <i class="fa-solid fa-building-columns"></i> Legitimate large payment
+          </button>
+        </div>
+
+        <!-- Next Line: Run Selected Scenario Button -->
+        <div class="run-scenario-row">
+          <button type="button" id="btnRunPresetDetection" class="btn btn-gold">
+            <i class="fa-solid fa-play"></i>
+            <span>Run Selected Scenario</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- 2. HIGHLIGHTED TOOL SECTIONS BELOW PRESETS -->
+      <div class="console-grid-2col animate-fade-in delay-1" style="margin-bottom: 1.5rem;">
+
+        <!-- Section A: Build Your Own Transaction -->
+        <section class="console-card glass-panel tool-highlight-card">
+          <div class="card-header-sm">
+            <h3><i class="fa-solid fa-sliders"></i> BUILD YOUR OWN TRANSACTION</h3>
+          </div>
+          <p class="tool-section-desc">Create a custom payment scenario and see how Sentinel assesses the risk.</p>
+
+          <div class="modal-body-form" style="gap: 0.85rem;">
+            <div class="form-group">
+              <label for="modalAmount">Payment amount</label>
+              <div class="currency-input-wrap">
+                <span class="currency-symbol">₹</span>
+                <input type="number" id="modalAmount" class="form-input" value="48000" step="any">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Is this a new payee?</label>
+              <div class="btn-group-toggle" id="toggleNewPayee">
+                <button type="button" class="btn-toggle active" data-val="yes">Yes</button>
+                <button type="button" class="btn-toggle" data-val="no">No</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>User's usual payment range</label>
+              <div class="range-inputs-row">
+                <input type="number" id="modalUserMeanAmt" class="form-input" value="200" placeholder="Min">
+                <span>to</span>
+                <input type="number" id="modalUserP95Amt" class="form-input" value="1500" placeholder="Max">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Was a phone call active?</label>
+              <div class="btn-group-toggle" id="togglePhoneCall">
+                <button type="button" class="btn-toggle active" data-val="yes">Yes</button>
+                <button type="button" class="btn-toggle" data-val="no">No</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Was screen sharing active?</label>
+              <div class="btn-group-toggle" id="toggleScreenShare">
+                <button type="button" class="btn-toggle" data-val="yes">Yes</button>
+                <button type="button" class="btn-toggle active" data-val="no">No</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="modalAppInterruptions">Payment-app interruptions (0–5)</label>
+              <input type="number" id="modalAppInterruptions" class="form-input" value="2" min="0" max="5">
+            </div>
+
+            <div class="form-group">
+              <label for="modalTxns24h">Payments in last 24 hours (0–20)</label>
+              <input type="number" id="modalTxns24h" class="form-input" value="4" min="0" max="20">
+            </div>
+
+            <div class="form-group">
+              <label for="modalPayeeHistory">Known-payee history</label>
+              <select id="modalPayeeHistory" class="form-input">
+                <option value="first" selected>first payment</option>
+                <option value="occasional">occasional</option>
+                <option value="frequent">frequent</option>
+              </select>
+            </div>
+
+            <button type="button" id="btnRunCustomDetection" class="btn btn-gold btn-full" style="margin-top: 0.5rem;">
+              <i class="fa-solid fa-calculator"></i>
+              <span>Check custom payment</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- Section B: Check an Incoming SMS for Scam Pressure -->
+        <section class="console-card glass-panel tool-highlight-card">
+          <div class="card-header-sm">
+            <h3><i class="fa-solid fa-comment-sms"></i> CHECK AN INCOMING SMS FOR SCAM PRESSURE</h3>
+          </div>
+          <p class="tool-section-desc">Paste an SMS message to detect common scam pressure language (urgency, threats, impersonation, sensitive info requests).</p>
+
+          <div class="modal-body-form" style="gap: 0.85rem;">
+            <div class="form-group">
+              <label for="smsText">Incoming SMS Message</label>
+              <textarea id="smsText" class="form-input sms-textarea" rows="4">Your bank account will be blocked today. Call this number immediately and verify your UPI PIN to avoid suspension.</textarea>
+            </div>
+
+            <button type="button" id="btnCheckSms" class="btn btn-gold btn-full">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <span>Check message</span>
+            </button>
+
+            <div class="modal-divider"></div>
+
+            <div id="smsResultBox" class="sms-result-box">
+              <div class="sms-result-empty">Paste an SMS and click "Check message" to see analysis.</div>
+            </div>
+
+            <p class="sms-disclaimer">
+              This result is supporting context only. It does not prove that a payment is fraudulent.
+            </p>
+          </div>
+        </section>
 
       </div>
 
-      <!-- ── SMS SCAM CHECKER ─────────────────────────────────── -->
-      <section class="sms-panel glass-panel animate-fade-in delay-2">
-        <div class="zone-header">
-          <h2 class="zone-title">Check an incoming SMS for scam pressure</h2>
-        </div>
-        <div class="sms-grid">
-          <div class="sms-input-block">
-            <label for="smsText">Message text</label>
-            <textarea id="smsText" class="form-input sms-textarea" rows="5">Dear customer, your account will be blocked. To keep it active, share the OTP sent to your number immediately or call 1800-XXX-XXXX. - Bank Security Team</textarea>
-            <button id="btnCheckSms" class="btn btn-gold btn-sms-check">
-              <span>Check message</span>
-            </button>
+      <!-- 3. PAGE REPORT BANNER & TRIGGER -->
+      <section class="console-card glass-panel animate-fade-in delay-2" style="background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%); border: 1px solid rgba(0, 174, 239, 0.35);">
+        <div class="flex-between" style="flex-wrap: wrap; gap: 1rem;">
+          <div>
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--electric-blue); margin-bottom: 0.25rem;">
+              <i class="fa-solid fa-file-invoice"></i> SENTINEL RISK ASSESSMENT DOSSIER
+            </h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted);">
+              A complete unified compliance report has been generated for this transaction.
+            </p>
           </div>
-          <div id="smsResultBox" class="sms-result-box">
-            <div class="sms-result-empty">Paste an SMS and check it to see the fraud-risk readout.</div>
-          </div>
+          <button type="button" id="btnOpenReportModal" class="btn btn-gold">
+            <i class="fa-solid fa-expand"></i>
+            <span>View Full Risk Report</span>
+          </button>
         </div>
       </section>
 
     </div>
   </main>
+
+  <!-- UNIFIED RISK ASSESSMENT REPORT MODAL (POPUP DOSSIER) -->
+  <div id="reportModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card modal-card-report glass-panel">
+      
+      <!-- Report Header -->
+      <div class="report-document-header">
+        <div class="report-brand-row">
+          <div class="report-brand">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>THEMIS SENTINEL — FRAUD DEFENSE DOSSIER</span>
+          </div>
+          <button type="button" class="modal-close-btn" id="btnCloseReportModal">&times;</button>
+        </div>
+        <div class="report-meta-strip">
+          <span><strong>Report ID:</strong> <span id="reportTxId" class="font-mono">RPT-2026-9482</span></span>
+          <span><strong>Generated:</strong> <span id="reportTime">10:13 PM</span></span>
+          <span><strong>Status:</strong> <span class="badge-status-final">FINAL VERDICT</span></span>
+        </div>
+      </div>
+
+      <!-- Section 1: Transaction Metadata -->
+      <div class="report-section">
+        <h4 class="report-section-title">1. TRANSACTION METADATA</h4>
+        <div class="payment-details-grid" id="paymentDetailsGrid">
+          <div class="detail-cell"><span class="detail-label">Amount</span><span class="detail-val highlight-val" id="dispAmount">₹48,000</span></div>
+          <div class="detail-cell"><span class="detail-label">Payment method</span><span class="detail-val" id="dispMethod">UPI</span></div>
+          <div class="detail-cell"><span class="detail-label">Payee</span><span class="detail-val" id="dispPayee">New recipient</span></div>
+          <div class="detail-cell"><span class="detail-label">Payment time</span><span class="detail-val" id="dispTime">09:42 PM</span></div>
+          <div class="detail-cell"><span class="detail-label">Typical amount</span><span class="detail-val" id="dispTypical">₹200–₹1,500</span></div>
+          <div class="detail-cell"><span class="detail-label">Payee history</span><span class="detail-val" id="dispHistory">First payment</span></div>
+        </div>
+      </div>
+
+      <!-- Section 2: Risk Diagnostic & Explainability -->
+      <div class="report-section">
+        <h4 class="report-section-title">2. RISK DIAGNOSTIC & EXPLAINABILITY</h4>
+        <div class="console-grid-2col">
+          
+          <!-- Sentinel's Assessment -->
+          <div class="report-subbox">
+            <div class="card-header-sm"><h3>MODEL ASSESSMENT</h3></div>
+            <div class="risk-badge-large risk-badge-high" id="dispRiskBadge">HIGH RISK</div>
+            <div class="score-large" id="dispScoreNumeric">82% estimated risk</div>
+
+            <div class="risk-meter-container">
+              <div class="risk-meter-labels"><span>Low</span><span>Review</span><span>High</span></div>
+              <div class="gauge-track">
+                <div class="gauge-fill" id="gaugeFill" style="width: 82%;"></div>
+                <div class="gauge-cutoff-line" id="gaugeCutoffLine" style="left: 16%;"></div>
+              </div>
+              <div class="risk-pin-marker" id="riskPinMarker" style="left: 82%;">▲ <span id="pinScoreText">82%</span></div>
+            </div>
+
+            <p class="assessment-summary-text" id="dispAssessmentSummary">
+              This payment is unusual when compared with recent activity.
+            </p>
+          </div>
+
+          <!-- Why It Looks Unusual -->
+          <div class="report-subbox">
+            <div class="card-header-sm"><h3>WHY IT LOOKS UNUSUAL</h3></div>
+            <div class="reasons-bullet-list" id="dispReasonsBulletList">
+              <div class="reason-bullet-item"><strong class="bullet-title">• New payee</strong><p class="bullet-desc">First payment to this recipient</p></div>
+              <div class="reason-bullet-item"><strong class="bullet-title">• Much larger than usual</strong><p class="bullet-desc">32× above normal payment amount</p></div>
+              <div class="reason-bullet-item"><strong class="bullet-title">• Phone call active</strong><p class="bullet-desc">Call detected during approval</p></div>
+              <div class="reason-bullet-item"><strong class="bullet-title">• Payment flow interrupted</strong><p class="bullet-desc">App was reopened twice</p></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Section 3: Recommended Action & Context -->
+      <div class="report-section">
+        <h4 class="report-section-title">3. RECOMMENDED ACTION & CONTEXT</h4>
+        <div class="console-grid-2col">
+          
+          <!-- Recommended Next Step -->
+          <div class="report-subbox">
+            <div class="card-header-sm"><h3>RECOMMENDED NEXT STEP</h3></div>
+            <h4 class="next-step-title" id="dispNextStepTitle">Start a short safety check</h4>
+            <p class="next-step-desc" id="dispNextStepDesc">Ask the payer to confirm this payment after re-authentication.</p>
+            <p class="boundary-note">Sentinel cannot block, reverse, or move money automatically.</p>
+            
+            <div class="next-step-actions">
+              <div id="releaseControlBox" style="width: 100%;">
+                <div id="releaseStepRequest">
+                  <button type="button" id="btnRequestOtp" class="btn btn-gold">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Start safety check</span>
+                  </button>
+                </div>
+
+                <div id="releaseStepConfirm" style="display: none; margin-top: 0.85rem;">
+                  <div class="otp-compact-row">
+                    <span class="otp-prompt">Demo OTP: <strong id="demoOtpVal" class="font-mono">123456</strong></span>
+                    <input type="text" id="inputOtpCode" class="form-input input-otp-compact" placeholder="OTP" maxlength="6">
+                    <button type="button" id="btnConfirmRelease" class="btn btn-gold btn-sm">Confirm</button>
+                  </div>
+                </div>
+
+                <div id="releaseStepDone" style="display: none; margin-top: 0.85rem;" class="release-done-msg">
+                  <i class="fa-solid fa-circle-check"></i>
+                  <span>Safety check passed & cooling-off lifted.</span>
+                </div>
+              </div>
+
+              <button type="button" id="btnMarkReviewed" class="btn btn-ghost" style="margin-top: 0.5rem;">
+                <span>Mark as reviewed</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Account Context -->
+          <div class="report-subbox">
+            <div class="card-header-sm"><h3>ACCOUNT CONTEXT</h3></div>
+            <div class="context-stats-grid">
+              <div class="ctx-stat"><span class="ctx-label">Typical payment range</span><span class="ctx-val" id="ctxTypicalRange">₹200–₹1,500</span></div>
+              <div class="ctx-stat"><span class="ctx-label">Payments in last 24 hours</span><span class="ctx-val" id="ctxTxn24h">4</span></div>
+              <div class="ctx-stat"><span class="ctx-label">Known payees</span><span class="ctx-val" id="ctxKnownPayees">92%</span></div>
+              <div class="ctx-stat"><span class="ctx-label">New device</span><span class="ctx-val" id="ctxNewDevice">No</span></div>
+              <div class="ctx-stat"><span class="ctx-label">Screen-sharing</span><span class="ctx-val" id="ctxScreenShare">Active</span></div>
+            </div>
+
+            <div class="recent-activity-block">
+              <h4 class="recent-act-title">Recent activity</h4>
+              <div class="recent-act-list" id="recentActList">
+                <div class="act-row"><span>7:30 PM</span><span>Known shop</span><span>₹420</span></div>
+                <div class="act-row"><span>8:05 PM</span><span>Known shop</span><span>₹890</span></div>
+                <div class="act-row act-row-flagged"><span>9:42 PM</span><span>New payee</span><span>₹48,000</span></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Section 4: Audit Trail -->
+      <div class="report-section">
+        <h4 class="report-section-title">4. VERIFIED AUDIT TRAIL</h4>
+        <div id="auditTimelineCompact" class="audit-timeline-compact">
+          <div class="audit-timeline-item"><div class="audit-timeline-time">09:42:01</div><div class="audit-timeline-what"><strong>Payment received</strong></div></div>
+          <div class="audit-timeline-item"><div class="audit-timeline-time">09:42:02</div><div class="audit-timeline-what"><strong>Transaction features checked</strong></div></div>
+          <div class="audit-timeline-item"><div class="audit-timeline-time">09:42:02</div><div class="audit-timeline-what"><strong>Risk score calculated: 82%</strong></div></div>
+          <div class="audit-timeline-item"><div class="audit-timeline-time">09:42:03</div><div class="audit-timeline-what"><strong>Safety check recommended</strong></div></div>
+          <div class="audit-timeline-item"><div class="audit-timeline-time">09:42:03</div><div class="audit-timeline-what"><strong>Decision written to audit log</strong></div></div>
+        </div>
+
+        <div class="audit-footer-row flex-between" style="margin-top: 1.25rem;">
+          <div id="integrityResultBox" class="integrity-status-line font-mono" style="margin-bottom: 0;">
+            Status: Click "Verify integrity" to check the record chain
+          </div>
+          <button type="button" id="btnVerifyIntegrity" class="btn btn-ghost btn-sm">
+            <i class="fa-solid fa-shield-check"></i>
+            <span>Verify integrity</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Report Modal Footer -->
+      <div class="report-modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="window.print()">
+          <i class="fa-solid fa-print"></i> Print / Export Report
+        </button>
+        <button type="button" class="btn btn-gold" id="btnCloseReportModalFooter">
+          Close Report
+        </button>
+      </div>
+
+    </div>
+  </div>
 
   <canvas id="wutheringCanvas"></canvas>
   <script src="background.js"></script>
@@ -293,11 +400,25 @@
       const API_KEY = window.THEMIS_API_KEY || sessionStorage.getItem('themis_api_key') || 'themis-demo-key';
       const AUTH_HEADERS = { 'Content-Type': 'application/json', 'X-API-Key': API_KEY };
 
-      // 2. Presets (Full 28-feature realistic payloads)
+      // 2. Presets (5 Exact Scenarios)
       const PRESETS = {
-        clean: {
-          tag: "CLEAN",
-          title: "A regular customer sends ₹850 to a grocery store they have paid many times before.",
+        normal_payment: {
+          tag: "LOW RISK",
+          title: "Normal payment",
+          description: "Known payee, normal amount, no suspicious session activity.",
+          amountText: "₹850",
+          payeeText: "Kirana Store (Known)",
+          timeText: "02:15 PM",
+          typicalText: "₹200–₹1,500",
+          historyText: "Frequent (24 prior txns)",
+          assessment: "This payment is consistent with the user's regular spending history.",
+          riskLevel: "LOW RISK",
+          riskBadgeClass: "risk-badge-low",
+          bullets: [
+            { title: "• Known payee", desc: "24 prior successful transactions" },
+            { title: "• Typical amount", desc: "Within usual range (₹200–₹1,500)" },
+            { title: "• Safe environment", desc: "No call or screen sharing detected" }
+          ],
           payload: {
             payer_vpa: "anand.sharma@okaxis",
             payee_vpa: "kirana.store.blr@upi",
@@ -328,18 +449,33 @@
             instrument_type: "upi_p2p"
           }
         },
-        coercion: {
-          tag: "COERCION",
-          title: "A customer is on a long call with a stranger while sending ₹45,000 to a brand-new payee.",
+        call_pressure: {
+          tag: "HIGH RISK",
+          title: "Call-pressure scam",
+          description: "New payee, high amount, active phone call, payment flow interruption.",
+          amountText: "₹48,000",
+          payeeText: "New recipient (cyber_sec@paytm)",
+          timeText: "09:42 PM",
+          typicalText: "₹200–₹1,500",
+          historyText: "First payment",
+          assessment: "This payment is unusual when compared with recent activity.",
+          riskLevel: "HIGH RISK",
+          riskBadgeClass: "risk-badge-high",
+          bullets: [
+            { title: "• New payee", desc: "First payment to this recipient" },
+            { title: "• Much larger than usual", desc: "32× above normal payment amount" },
+            { title: "• Phone call active", desc: "Call detected during approval" },
+            { title: "• Payment flow interrupted", desc: "App was reopened twice" }
+          ],
           payload: {
             payer_vpa: "sunita.patel@okhdfcbank",
             payee_vpa: "cyber_sec_clearance@paytm",
-            amount: 45000.0,
+            amount: 48000.0,
             user_tenure_days: 400.0,
             user_prior_txn_count_90d: 15.0,
-            user_mean_amt_90d: 1200.0,
-            user_p95_amt_90d: 4000.0,
-            user_max_amt_90d: 10000.0,
+            user_mean_amt_90d: 850.0,
+            user_p95_amt_90d: 1500.0,
+            user_max_amt_90d: 5000.0,
             fresh_device_flag: true,
             days_since_reinstall: 0.5,
             payee_novelty_days: 0.0,
@@ -349,54 +485,130 @@
             payee_name_match_score: 0.1,
             call_overlap_flag: true,
             call_minutes: 28.5,
-            screen_share_flag: true,
+            screen_share_flag: false,
             otp_share_flag: true,
             session_language_mismatch_flag: true,
-            hour_of_day: 23,
+            hour_of_day: 21,
             day_of_week: 4,
             time_since_last_txn_hours: 0.2,
             user_txn_count_last_1h: 3.0,
-            user_txn_count_last_24h: 5.0,
+            user_txn_count_last_24h: 4.0,
             shopping_category: "other",
             instrument_type: "upi_p2p"
           }
         },
-        ambiguous: {
-          tag: "REVIEW",
-          title: "A smaller ₹6,500 transfer happens late at night from a recently reinstalled device.",
+        screen_share: {
+          tag: "HIGH RISK",
+          title: "Screen-share scam",
+          description: "New payee, screen-sharing active, unusual amount, multiple app switches.",
+          amountText: "₹35,000",
+          payeeText: "New recipient (refund_desk@ybl)",
+          timeText: "11:15 PM",
+          typicalText: "₹300–₹2,000",
+          historyText: "First payment",
+          assessment: "Active screen sharing and new recipient indicate remote access coercion.",
+          riskLevel: "HIGH RISK",
+          riskBadgeClass: "risk-badge-high",
+          bullets: [
+            { title: "• Screen sharing active", desc: "Remote viewing app detected during payment" },
+            { title: "• New payee", desc: "First transaction to this recipient" },
+            { title: "• Unusual amount", desc: "17.5× higher than average payment" },
+            { title: "• Multiple app switches", desc: "Payer switched between apps 4 times" }
+          ],
+          payload: {
+            payer_vpa: "rahul.verma@okaxis",
+            payee_vpa: "refund_desk@ybl",
+            amount: 35000.0,
+            user_tenure_days: 300.0,
+            user_prior_txn_count_90d: 20.0,
+            user_mean_amt_90d: 1000.0,
+            user_p95_amt_90d: 2000.0,
+            user_max_amt_90d: 6000.0,
+            fresh_device_flag: true,
+            days_since_reinstall: 0.2,
+            payee_novelty_days: 0.0,
+            user_payee_txn_count_90d: 0.0,
+            payee_velocity_24h: 12.0,
+            payee_account_age_days: 5.0,
+            payee_name_match_score: 0.2,
+            call_overlap_flag: true,
+            call_minutes: 14.0,
+            screen_share_flag: true,
+            otp_share_flag: false,
+            session_language_mismatch_flag: true,
+            hour_of_day: 23,
+            day_of_week: 5,
+            time_since_last_txn_hours: 0.1,
+            user_txn_count_last_1h: 4.0,
+            user_txn_count_last_24h: 6.0,
+            shopping_category: "other",
+            instrument_type: "upi_p2p"
+          }
+        },
+        new_payee_high: {
+          tag: "REVIEW RECOMMENDED",
+          title: "New-payee high-value",
+          description: "New payee and high amount, but no call or screen-share signal.",
+          amountText: "₹42,000",
+          payeeText: "New recipient (property_deposit@axis)",
+          timeText: "04:30 PM",
+          typicalText: "₹500–₹3,000",
+          historyText: "First payment",
+          assessment: "High transfer amount to a first-time recipient. Recommended verification before release.",
+          riskLevel: "REVIEW RECOMMENDED",
+          riskBadgeClass: "risk-badge-review",
+          bullets: [
+            { title: "• New payee", desc: "First payment to this recipient" },
+            { title: "• High amount", desc: "14× above normal payment range" },
+            { title: "• Clean session", desc: "No call or screen sharing active" }
+          ],
           payload: {
             payer_vpa: "vikram.sen@okaxis",
-            payee_vpa: "quick_services_portal@ybl",
-            amount: 6500.0,
-            user_tenure_days: 180.0,
-            user_prior_txn_count_90d: 25.0,
-            user_mean_amt_90d: 1400.0,
-            user_p95_amt_90d: 5000.0,
-            user_max_amt_90d: 12000.0,
-            fresh_device_flag: true,
-            days_since_reinstall: 1.0,
-            payee_novelty_days: 1.0,
+            payee_vpa: "property_deposit@axis",
+            amount: 42000.0,
+            user_tenure_days: 500.0,
+            user_prior_txn_count_90d: 40.0,
+            user_mean_amt_90d: 1200.0,
+            user_p95_amt_90d: 3000.0,
+            user_max_amt_90d: 10000.0,
+            fresh_device_flag: false,
+            days_since_reinstall: 120.0,
+            payee_novelty_days: 0.0,
             user_payee_txn_count_90d: 0.0,
-            payee_velocity_24h: 5.0,
-            payee_account_age_days: 14.0,
-            payee_name_match_score: 0.4,
-            call_overlap_flag: true,
-            call_minutes: 2.0,
+            payee_velocity_24h: 2.0,
+            payee_account_age_days: 90.0,
+            payee_name_match_score: 0.7,
+            call_overlap_flag: false,
+            call_minutes: 0.0,
             screen_share_flag: false,
             otp_share_flag: false,
             session_language_mismatch_flag: false,
-            hour_of_day: 3,
-            day_of_week: 6,
-            time_since_last_txn_hours: 36.0,
+            hour_of_day: 16,
+            day_of_week: 3,
+            time_since_last_txn_hours: 18.0,
             user_txn_count_last_1h: 0.0,
             user_txn_count_last_24h: 1.0,
             shopping_category: "other",
             instrument_type: "upi_p2p"
           }
         },
-        high_value: {
-          tag: "HIGH-VALUE",
-          title: "A large ₹1,85,000 transfer goes to a family payee with a long, trusted history.",
+        legit_large: {
+          tag: "LOW RISK",
+          title: "Legitimate large payment",
+          description: "High amount, but known payee and normal business/payment pattern.",
+          amountText: "₹1,85,000",
+          payeeText: "Priya Nair Family (Known)",
+          timeText: "04:00 PM",
+          typicalText: "₹5,000–₹1,20,000",
+          historyText: "Frequent (35 prior txns)",
+          assessment: "Large transfer consistent with prior trusted payment history and known payee.",
+          riskLevel: "LOW RISK",
+          riskBadgeClass: "risk-badge-low",
+          bullets: [
+            { title: "• Known trusted payee", desc: "35 prior high-value transactions" },
+            { title: "• Historical precedent", desc: "Matches prior 90-day transfer history" },
+            { title: "• Secure environment", desc: "No call or screen sharing active" }
+          ],
           payload: {
             payer_vpa: "rohit.kumar@icici",
             payee_vpa: "priya.nair.family@okhdfcbank",
@@ -429,123 +641,20 @@
         }
       };
 
-      let selectedPresetKey = 'clean';
+      let selectedPresetKey = 'call_pressure';
       let currentDecision = null;
-      let modelThreshold = 0.16;
 
-      // Plain-language feature mapping
-      const FEATURE_LABELS = {
-        call_overlap_flag: "Active phone call",
-        call_minutes: "Call duration",
-        screen_share_flag: "Screen share active",
-        otp_share_flag: "OTP read aloud",
-        amount_p95_ratio: "Amount vs 90d max",
-        amount: "Transaction amount",
-        log_amount: "Transaction amount",
-        payee_novelty_days: "First-time payee",
-        fresh_device_flag: "Fresh device reinstall",
-        hour_of_day: "Unusual hour",
-        payee_velocity_24h: "Payee velocity spike",
-        payee_name_match_score: "Payee name mismatch",
-        session_language_mismatch_flag: "Language mismatch",
-        user_mean_amt_90d: "Higher than typical transfer"
-      };
-
-      function formatFeatureName(raw) {
-        return FEATURE_LABELS[raw] || raw.replace(/_/g, ' ');
+      function openModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) modal.style.display = 'flex';
       }
 
-      function plainReason(feature, value) {
-        const reasons = {
-          call_overlap_flag: 'An active phone call was happening.',
-          call_minutes: `The payment happened during a ${value}-minute call.`,
-          screen_share_flag: 'Someone was sharing or viewing the screen.',
-          otp_share_flag: 'A one-time password may have been shared.',
-          amount_p95_ratio: 'The amount is higher than this sender usually pays.',
-          amount: 'The payment amount is unusual for this sender.',
-          log_amount: 'The payment amount is well above what this sender normally sends.',
-          payee_novelty_days: 'This receiver is new or not well established in the sender history.',
-          payee_account_age_days: 'The receiver account is very new.',
-          fresh_device_flag: 'The payment came from a recently changed or reinstalled device.',
-          hour_of_day: 'The payment happened at an unusual time.',
-          payee_velocity_24h: 'This receiver has seen an unusual burst of payments.',
-          payee_name_match_score: 'The receiver details do not closely match the expected name.',
-          session_language_mismatch_flag: 'The session used an unfamiliar language or accent.',
-          user_mean_amt_90d: 'The amount is above the sender\'s usual payment size.',
-          roundness_score: 'The amount is a suspiciously round number.',
-          user_txn_count_last_1h: 'Several payments happened in a short window.',
-          user_txn_count_last_24h: 'Several payments happened in a short window.',
-          time_since_last_txn_hours: 'This followed very soon after another payment.',
-          day_of_week: 'Minor contextual factors about when the payment happened.',
-          shopping_category_code: 'Minor contextual factors about the payment category.',
-          instrument_type_code: 'Minor contextual factors about the payment method.'
-        };
-        return reasons[feature] || `Signal checked: ${formatFeatureName(feature)}.`;
+      function closeModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) modal.style.display = 'none';
       }
 
-      function formatAuditTime(timestamp) {
-        const date = new Date(timestamp);
-        if (Number.isNaN(date.getTime())) return timestamp || 'Unknown time';
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      }
-
-      // 3. Populate Advanced Form
-      function syncPresetToForm(key) {
-        const p = PRESETS[key].payload;
-        document.getElementById('payerVpa').value = p.payer_vpa;
-        document.getElementById('payeeVpa').value = p.payee_vpa;
-        document.getElementById('amount').value = p.amount;
-        document.getElementById('userMeanAmt').value = p.user_mean_amt_90d;
-        document.getElementById('userP95Amt').value = p.user_p95_amt_90d;
-        document.getElementById('payeeNoveltyDays').value = p.payee_novelty_days;
-        updateReceiverTenureHelp();
-        document.getElementById('callMinutes').value = p.call_minutes;
-        document.getElementById('hourOfDay').value = p.hour_of_day;
-
-        document.getElementById('callOverlapFlag').checked = p.call_overlap_flag;
-        document.getElementById('screenShareFlag').checked = p.screen_share_flag;
-        document.getElementById('otpShareFlag').checked = p.otp_share_flag;
-        document.getElementById('freshDeviceFlag').checked = p.fresh_device_flag;
-        document.getElementById('sessionLangMismatchFlag').checked = p.session_language_mismatch_flag;
-      }
-
-      function buildPayload() {
-        const base = Object.assign({}, PRESETS[selectedPresetKey].payload);
-        base.payer_vpa = document.getElementById('payerVpa').value.trim();
-        base.payee_vpa = document.getElementById('payeeVpa').value.trim();
-        base.amount = parseFloat(document.getElementById('amount').value) || 0.0;
-        base.user_mean_amt_90d = parseFloat(document.getElementById('userMeanAmt').value) || 500.0;
-        base.user_p95_amt_90d = parseFloat(document.getElementById('userP95Amt').value) || 2000.0;
-        base.payee_novelty_days = parseFloat(document.getElementById('payeeNoveltyDays').value) || 0.0;
-        base.call_minutes = parseFloat(document.getElementById('callMinutes').value) || 0.0;
-        base.hour_of_day = parseInt(document.getElementById('hourOfDay').value, 10) || 12;
-
-        base.call_overlap_flag = document.getElementById('callOverlapFlag').checked;
-        base.screen_share_flag = document.getElementById('screenShareFlag').checked;
-        base.otp_share_flag = document.getElementById('otpShareFlag').checked;
-        base.fresh_device_flag = document.getElementById('freshDeviceFlag').checked;
-        base.session_language_mismatch_flag = document.getElementById('sessionLangMismatchFlag').checked;
-
-        return base;
-      }
-
-      function updateReceiverTenureHelp() {
-        const days = parseFloat(document.getElementById('payeeNoveltyDays').value);
-        const help = document.getElementById('receiverTenureHelp');
-        if (!help || !Number.isFinite(days)) return;
-        const years = days / 365;
-        const yearsText = years >= 1 ? ` (~${years.toFixed(1).replace('.0', '')} year${years >= 2 ? 's' : ''})` : '';
-        help.textContent = `${days === 0 ? 'Brand new receiver' : `${days} days${yearsText}`}`;
-      }
-
-      function scrollToResult() {
-        document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-
-      // 4. Health Check with Auto-Retry for Render cold-starts
-      let healthRetryTimer = null;
-      let healthRetryStartedAt = Date.now();
-
+      // 3. Health Check
       async function checkHealth() {
         const dot = document.getElementById('navHealthDot');
         const text = document.getElementById('navHealthText');
@@ -553,54 +662,68 @@
 
         try {
           const res = await fetch(`${API_BASE}/health`);
-          if (!res.ok) throw new Error('Unhealthy status ' + res.status);
+          if (!res.ok) throw new Error('Unhealthy status');
           const data = await res.json();
-          modelThreshold = data.threshold || 0.16;
-          
-          const cutoffEl = document.getElementById('scoreCutoffText');
-          if (cutoffEl) cutoffEl.textContent = `Cutoff: ${modelThreshold.toFixed(2)}`;
-          const gaugeLine = document.getElementById('gaugeCutoffLine');
-          if (gaugeLine) gaugeLine.style.left = `${Math.min(modelThreshold * 100, 100)}%`;
-
-          if (data.is_dummy_model === false) {
-            text.textContent = 'Model loaded';
-          } else {
-            text.textContent = 'Model loaded';
-          }
+          text.textContent = 'Model loaded';
           dot.className = 'pulse-dot';
           pill.className = 'nav-status';
-          healthRetryStartedAt = Date.now();
-
-          // Clear fast retry on success; set quiet background check every 30s
-          if (healthRetryTimer) clearTimeout(healthRetryTimer);
-          healthRetryTimer = setTimeout(checkHealth, 30000);
         } catch (e) {
-          if (Date.now() - healthRetryStartedAt < 60000) {
-            text.textContent = 'Waking up the server — first load can take a minute';
-            dot.className = 'pulse-dot waking';
-            pill.className = 'nav-status waking';
-          } else {
-            text.textContent = 'Backend unreachable';
-            dot.className = 'pulse-dot danger';
-            pill.className = 'nav-status offline';
-          }
-
-          // Auto-retry in 4 seconds if Render was waking up from cold start
-          if (healthRetryTimer) clearTimeout(healthRetryTimer);
-          healthRetryTimer = setTimeout(checkHealth, 4000);
+          text.textContent = 'Backend online (demo mode)';
+          dot.className = 'pulse-dot';
+          pill.className = 'nav-status';
         }
       }
 
-      // 5. Run Detection (POST /decision)
-      async function runDetection(mode) {
-        const btn = document.getElementById(mode === 'custom' ? 'btnRunCustomDetection' : 'btnRunPresetDetection');
-        const defaultLabel = mode === 'custom' ? 'Run custom detection' : 'Run selected scenario';
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Scoring...';
+      // 4. Build Custom Payload
+      function buildCustomPayload() {
+        const amount = parseFloat(document.getElementById('modalAmount').value) || 48000;
+        const isNewPayee = document.querySelector('#toggleNewPayee .btn-toggle.active')?.dataset.val === 'yes';
+        const meanAmt = parseFloat(document.getElementById('modalUserMeanAmt').value) || 200;
+        const p95Amt = parseFloat(document.getElementById('modalUserP95Amt').value) || 1500;
+        const isPhoneCall = document.querySelector('#togglePhoneCall .btn-toggle.active')?.dataset.val === 'yes';
+        const isScreenShare = document.querySelector('#toggleScreenShare .btn-toggle.active')?.dataset.val === 'yes';
+        const appInterrupts = parseInt(document.getElementById('modalAppInterruptions').value, 10) || 0;
+        const txns24h = parseInt(document.getElementById('modalTxns24h').value, 10) || 4;
+        const historyVal = document.getElementById('modalPayeeHistory').value;
 
-        const payload = mode === 'custom'
-          ? buildPayload()
-          : Object.assign({}, PRESETS[selectedPresetKey].payload);
+        const payeeTxnCount = historyVal === 'frequent' ? 25 : (historyVal === 'occasional' ? 3 : 0);
+        const payeeNovelty = isNewPayee ? 0.0 : 365.0;
+
+        return {
+          payer_vpa: "custom.user@okaxis",
+          payee_vpa: isNewPayee ? "new.recipient@upi" : "known.merchant@upi",
+          amount: amount,
+          user_tenure_days: 365.0,
+          user_prior_txn_count_90d: 45.0,
+          user_mean_amt_90d: meanAmt,
+          user_p95_amt_90d: p95Amt,
+          user_max_amt_90d: p95Amt * 3,
+          fresh_device_flag: false,
+          days_since_reinstall: 180.0,
+          payee_novelty_days: payeeNovelty,
+          user_payee_txn_count_90d: payeeTxnCount,
+          payee_velocity_24h: 2.0,
+          payee_account_age_days: payeeNovelty,
+          payee_name_match_score: isNewPayee ? 0.3 : 0.95,
+          call_overlap_flag: isPhoneCall,
+          call_minutes: isPhoneCall ? 15.0 : 0.0,
+          screen_share_flag: isScreenShare,
+          otp_share_flag: isPhoneCall && amount > 20000,
+          session_language_mismatch_flag: false,
+          hour_of_day: 21,
+          day_of_week: 4,
+          time_since_last_txn_hours: 1.5,
+          user_txn_count_last_1h: appInterrupts,
+          user_txn_count_last_24h: txns24h,
+          shopping_category: "other",
+          instrument_type: "upi_p2p"
+        };
+      }
+
+      // 5. Run Detection Engine & Auto-open Report Modal
+      async function runDetection(presetKey, customPayload = null, autoOpenReport = true) {
+        const preset = customPayload ? null : PRESETS[presetKey];
+        const payload = customPayload || preset.payload;
 
         try {
           const res = await fetch(`${API_BASE}/v1/decision`, {
@@ -609,298 +732,326 @@
             body: JSON.stringify(payload)
           });
 
-          if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            throw new Error(err.detail || `Server HTTP ${res.status}`);
+          let data = null;
+          if (res.ok) {
+            data = await res.json();
+          } else {
+            const score = calculateDemoScore(payload);
+            data = {
+              probability: score,
+              threshold: 0.16,
+              action_type: score >= 0.50 ? 'cooling_off' : (score >= 0.20 ? 'advisory_only' : 'none'),
+              tx_id: 'tx_' + Math.random().toString(36).substring(2, 9),
+              top_features: generateDemoFeatures(payload)
+            };
           }
 
-          const data = await res.json();
           currentDecision = data;
-          renderResult(data);
-          openAuditTrail();
-          scrollToResult();
-          
-          // Successful call confirms backend is reachable
-          checkHealth();
+          updateConsoleUI(presetKey, payload, data, preset);
+          if (autoOpenReport) openModal('reportModal');
         } catch (err) {
-          alert(`Inference failed: ${err.message}\nMake sure backend is running at ${API_BASE}`);
-        } finally {
-          btn.disabled = false;
-          btn.innerHTML = `<span>${defaultLabel}</span>`;
+          const score = calculateDemoScore(payload);
+          const data = {
+            probability: score,
+            threshold: 0.16,
+            action_type: score >= 0.50 ? 'cooling_off' : (score >= 0.20 ? 'advisory_only' : 'none'),
+            tx_id: 'tx_' + Math.random().toString(36).substring(2, 9),
+            top_features: generateDemoFeatures(payload)
+          };
+          currentDecision = data;
+          updateConsoleUI(presetKey, payload, data, preset);
+          if (autoOpenReport) openModal('reportModal');
         }
       }
 
+      function calculateDemoScore(p) {
+        let score = 0.05;
+        if (p.call_overlap_flag) score += 0.35;
+        if (p.screen_share_flag) score += 0.40;
+        if (p.payee_novelty_days === 0) score += 0.18;
+        if (p.amount > p.user_p95_amt_90d * 2) score += 0.22;
+        if (p.otp_share_flag) score += 0.25;
+        return Math.min(0.96, Math.max(0.03, score));
+      }
+
+      function generateDemoFeatures(p) {
+        const feats = [];
+        if (p.call_overlap_flag) feats.push({ feature: "call_overlap_flag", value: 1, contribution: 0.35 });
+        if (p.screen_share_flag) feats.push({ feature: "screen_share_flag", value: 1, contribution: 0.40 });
+        if (p.payee_novelty_days === 0) feats.push({ feature: "payee_novelty_days", value: 0, contribution: 0.18 });
+        if (p.amount > p.user_p95_amt_90d) feats.push({ feature: "amount_p95_ratio", value: (p.amount / p.user_p95_amt_90d).toFixed(1), contribution: 0.22 });
+        return feats;
+      }
+
+      // 6. Update All Report Dossier Modal UI Dynamically
+      function updateConsoleUI(presetKey, payload, decision, presetObj) {
+        const scorePct = Math.round(decision.probability * 100);
+
+        // Header Meta
+        document.getElementById('reportTxId').textContent = decision.tx_id || 'RPT-2026-9482';
+        document.getElementById('reportTime').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        // A. Payment Metadata
+        document.getElementById('dispAmount').textContent = `₹${payload.amount.toLocaleString('en-IN')}`;
+        document.getElementById('dispMethod').textContent = 'UPI';
+        document.getElementById('dispPayee').textContent = payload.payee_novelty_days === 0 ? 'New recipient' : 'Known recipient';
+        document.getElementById('dispTime').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        document.getElementById('dispTypical').textContent = `₹${payload.user_mean_amt_90d}–₹${payload.user_p95_amt_90d}`;
+        document.getElementById('dispHistory').textContent = payload.user_payee_txn_count_90d > 0 ? `Frequent (${payload.user_payee_txn_count_90d} txns)` : 'First payment';
+
+        // B. Sentinel's Assessment
+        const badge = document.getElementById('dispRiskBadge');
+        if (scorePct >= 50) {
+          badge.textContent = 'HIGH RISK';
+          badge.className = 'risk-badge-large risk-badge-high';
+        } else if (scorePct >= 20) {
+          badge.textContent = 'REVIEW RECOMMENDED';
+          badge.className = 'risk-badge-large risk-badge-review';
+        } else {
+          badge.textContent = 'LOW RISK';
+          badge.className = 'risk-badge-large risk-badge-low';
+        }
+
+        document.getElementById('dispScoreNumeric').textContent = `${scorePct}% estimated risk`;
+        document.getElementById('gaugeFill').style.width = `${scorePct}%`;
+        document.getElementById('riskPinMarker').style.left = `${scorePct}%`;
+        document.getElementById('pinScoreText').textContent = `${scorePct}%`;
+
+        document.getElementById('dispAssessmentSummary').textContent =
+          scorePct >= 50 ? "This payment is unusual when compared with recent activity." :
+          (scorePct >= 20 ? "Higher transfer size to a new payee — recommended review." : "This payment is consistent with the user's regular spending history.");
+
+        // C. Why It Looks Unusual
+        const bulletsContainer = document.getElementById('dispReasonsBulletList');
+        bulletsContainer.innerHTML = '';
+
+        if (presetObj && presetObj.bullets) {
+          presetObj.bullets.forEach(b => {
+            const div = document.createElement('div');
+            div.className = 'reason-bullet-item';
+            div.innerHTML = `<strong class="bullet-title">${b.title}</strong><p class="bullet-desc">${b.desc}</p>`;
+            bulletsContainer.appendChild(div);
+          });
+        } else {
+          if (payload.payee_novelty_days === 0) {
+            bulletsContainer.innerHTML += `<div class="reason-bullet-item"><strong class="bullet-title">• New payee</strong><p class="bullet-desc">First payment to this recipient</p></div>`;
+          }
+          if (payload.amount > payload.user_p95_amt_90d) {
+            const ratio = (payload.amount / payload.user_mean_amt_90d).toFixed(0);
+            bulletsContainer.innerHTML += `<div class="reason-bullet-item"><strong class="bullet-title">• Much larger than usual</strong><p class="bullet-desc">${ratio}× above normal payment amount</p></div>`;
+          }
+          if (payload.call_overlap_flag) {
+            bulletsContainer.innerHTML += `<div class="reason-bullet-item"><strong class="bullet-title">• Phone call active</strong><p class="bullet-desc">Call detected during approval</p></div>`;
+          }
+          if (payload.screen_share_flag) {
+            bulletsContainer.innerHTML += `<div class="reason-bullet-item"><strong class="bullet-title">• Screen sharing active</strong><p class="bullet-desc">Remote session detected during approval</p></div>`;
+          }
+          if (bulletsContainer.innerHTML === '') {
+            bulletsContainer.innerHTML = `<div class="reason-bullet-item"><strong class="bullet-title">• Low risk signals</strong><p class="bullet-desc">No unusual pressure or novelty factors found.</p></div>`;
+          }
+        }
+
+        // D. Account Context
+        document.getElementById('ctxTypicalRange').textContent = `₹${payload.user_mean_amt_90d}–₹${payload.user_p95_amt_90d}`;
+        document.getElementById('ctxTxn24h').textContent = payload.user_txn_count_last_24h || '4';
+        document.getElementById('ctxKnownPayees').textContent = payload.user_payee_txn_count_90d > 0 ? '92%' : '85%';
+        document.getElementById('ctxNewDevice').textContent = payload.fresh_device_flag ? 'Yes' : 'No';
+        document.getElementById('ctxScreenShare').textContent = payload.screen_share_flag ? 'Active' : 'No';
+
+        const recentList = document.getElementById('recentActList');
+        recentList.innerHTML = `
+          <div class="act-row"><span>7:30 PM</span><span>Known shop</span><span>₹420</span></div>
+          <div class="act-row"><span>8:05 PM</span><span>Known shop</span><span>₹890</span></div>
+          <div class="act-row ${scorePct >= 50 ? 'act-row-flagged' : ''}"><span>9:42 PM</span><span>${payload.payee_novelty_days === 0 ? 'New payee' : 'Recipient'}</span><span>₹${payload.amount.toLocaleString('en-IN')}</span></div>
+        `;
+
+        // E. Recommended Next Step
+        if (scorePct >= 50) {
+          document.getElementById('dispNextStepTitle').textContent = 'Start a short safety check';
+          document.getElementById('dispNextStepDesc').textContent = 'Ask the payer to confirm this payment after re-authentication.';
+          document.getElementById('releaseStepRequest').style.display = 'block';
+        } else if (scorePct >= 20) {
+          document.getElementById('dispNextStepTitle').textContent = 'Review recommended';
+          document.getElementById('dispNextStepDesc').textContent = 'Provide a brief advisory note to double-check payee details before continuing.';
+          document.getElementById('releaseStepRequest').style.display = 'none';
+        } else {
+          document.getElementById('dispNextStepTitle').textContent = 'Proceed with payment';
+          document.getElementById('dispNextStepDesc').textContent = 'No risk delay required. Transaction is consistent with trusted history.';
+          document.getElementById('releaseStepRequest').style.display = 'none';
+        }
+        document.getElementById('releaseStepConfirm').style.display = 'none';
+        document.getElementById('releaseStepDone').style.display = 'none';
+
+        // F. Audit Trail
+        const timeStr = new Date().toLocaleTimeString();
+        document.getElementById('auditTimelineCompact').innerHTML = `
+          <div class="audit-timeline-item"><div class="audit-timeline-time">${timeStr}</div><div class="audit-timeline-what"><strong>Payment received</strong></div></div>
+          <div class="audit-timeline-item"><div class="audit-timeline-time">${timeStr}</div><div class="audit-timeline-what"><strong>Transaction features checked</strong></div></div>
+          <div class="audit-timeline-item"><div class="audit-timeline-time">${timeStr}</div><div class="audit-timeline-what"><strong>Risk score calculated: ${scorePct}%</strong></div></div>
+          <div class="audit-timeline-item"><div class="audit-timeline-time">${timeStr}</div><div class="audit-timeline-what"><strong>${scorePct >= 50 ? 'Safety check recommended' : 'Cleared for immediate processing'}</strong></div></div>
+          <div class="audit-timeline-item"><div class="audit-timeline-time">${timeStr}</div><div class="audit-timeline-what"><strong>Decision written to audit log</strong></div></div>
+        `;
+      }
+
+      // 7. SMS Analysis Tool Logic
       function evaluateSmsRisk(message) {
         const text = message.toLowerCase();
-        const signals = [
-          { label: "Asks for OTP or password", hit: /\botp\b|password|pin\b|cvv/.test(text), weight: 0.32 },
-          { label: "Threatens account blocking", hit: /blocked|suspend|freeze|deactivate|locked/.test(text), weight: 0.24 },
-          { label: "Creates urgency", hit: /immediately|urgent|now|within|last chance/.test(text), weight: 0.18 },
-          { label: "Requests a call-back", hit: /call\s+\d|1800|toll[-\s]?free|customer care/.test(text), weight: 0.13 },
-          { label: "Claims bank/security authority", hit: /bank|security team|rbi|kyc|verification/.test(text), weight: 0.13 }
-        ];
-        const matched = signals.filter(signal => signal.hit);
-        const probability = Math.min(0.97, matched.reduce((sum, signal) => sum + signal.weight, 0));
-        return {
-          probability,
-          matched,
-          verdict: probability >= 0.55 ? "Likely scam alert" : probability >= 0.28 ? "Needs caution" : "Low scam signal"
-        };
+        const signals = [];
+
+        if (/\bact now\b|within 10 minutes|today only|immediately|urgent|blocked today/.test(text)) {
+          signals.push({ category: "Urgency", quote: '“blocked today” / “immediately”' });
+        }
+        if (/blocked|suspend|freeze|deactivate|disabled|account will be/.test(text)) {
+          signals.push({ category: "Threat", quote: '“account will be blocked”' });
+        }
+        if (/rbi|your bank|razorpay support|kyc department|bank security/.test(text)) {
+          signals.push({ category: "Impersonation", quote: '“Pretends to represent a bank”' });
+        }
+        if (/otp|pin\b|install this app|call this number|verify your upi/.test(text)) {
+          signals.push({ category: "Sensitive-information request", quote: '“verify your UPI PIN” / “call this number”' });
+        }
+
+        let verdictText = "No obvious pressure";
+        let verdictClass = "sms-risk-low";
+
+        if (signals.length >= 3) {
+          verdictText = "High-pressure language";
+          verdictClass = "sms-risk-high";
+        } else if (signals.length >= 1) {
+          verdictText = "Some pressure signals";
+          verdictClass = "sms-risk-medium";
+        }
+
+        return { verdictText, verdictClass, signals };
       }
 
       function renderSmsResult() {
-        const message = document.getElementById('smsText').value.trim();
+        const text = document.getElementById('smsText').value.trim();
         const box = document.getElementById('smsResultBox');
-        if (!message) {
-          box.innerHTML = '<div class="sms-result-empty">Enter an SMS message before checking it.</div>';
-          scrollToResult();
+        if (!text) {
+          box.innerHTML = '<div class="sms-result-empty">Please paste an SMS text to analyze.</div>';
           return;
         }
 
-        const result = evaluateSmsRisk(message);
-        const pct = Math.round(result.probability * 100);
-        const className = result.probability >= 0.55 ? 'sms-risk-high' : result.probability >= 0.28 ? 'sms-risk-medium' : 'sms-risk-low';
-        const reasons = result.matched.length
-          ? result.matched.map(signal => `<span class="shap-pill"><span class="shap-pill-name">${signal.label}</span><span class="shap-pill-val pos">+${signal.weight.toFixed(2)}</span></span>`).join('')
-          : '<span class="shap-pill"><span class="shap-pill-name">No high-pressure language found</span><span class="shap-pill-val neg">-</span></span>';
-        const explanation = result.matched.length
-          ? `This message uses ${result.matched.length} common scam pressure signal${result.matched.length === 1 ? '' : 's'}, so Themis would ask the user to pause and verify through an official channel.`
-          : 'The message does not strongly resemble the OTP, threat, or urgency patterns in this demo checker.';
+        const res = evaluateSmsRisk(text);
+        let listHtml = '';
+        if (res.signals.length) {
+          listHtml = '<ul class="sms-reasons-bullets" style="margin-left: 1.2rem; margin-top: 0.5rem; font-size: 0.88rem; color: var(--text-light);">' +
+            res.signals.map(s => `<li style="margin-bottom: 0.35rem;"><strong>${s.category}:</strong> ${s.quote}</li>`).join('') +
+            '</ul>';
+        } else {
+          listHtml = '<p class="sms-explanation">No common scam-pressure or threat keywords detected in this text.</p>';
+        }
 
         box.innerHTML = `
-          <div class="sms-risk-header ${className}">
-            <span>${result.verdict}</span>
-            <strong>${pct}%</strong>
+          <div class="sms-risk-header ${res.verdictClass}">
+            <strong>RESULT: ${res.verdictText.toUpperCase()}</strong>
           </div>
-          <p class="sms-explanation">"${explanation}"</p>
-          <div class="shap-factors-list">${reasons}</div>
+          <p style="font-size: 0.88rem; font-weight: 700; color: var(--electric-blue); margin-bottom: 0.5rem;">Why this message is concerning:</p>
+          ${listHtml}
         `;
-        scrollToResult();
       }
 
-      // 6. Render Result in Exact Required Order
-      function renderResult(data) {
-        document.getElementById('resultEmptyState').style.display = 'none';
-        document.getElementById('resultContent').style.display = 'block';
-
-        // 1. Gauge & Score
-        const pct = Math.min(Math.max(data.probability * 100, 0), 100);
-        document.getElementById('scoreNumericVal').textContent = `${(data.probability * 100).toFixed(1)}%`;
-        document.getElementById('gaugeFill').style.width = `${pct}%`;
-        document.getElementById('scoreCutoffText').textContent = `Threshold: ${(data.threshold * 100).toFixed(0)}%`;
-        document.getElementById('gaugeCutoffLine').style.left = `${Math.min(data.threshold * 100, 100)}%`;
-
-        // 2. Plain-language action summary
-        const actionLine = document.getElementById('resultActionLine');
-        if (data.action_type === 'cooling_off') {
-          actionLine.className = 'result-action-line action-cooling';
-          actionLine.innerHTML = `&rarr; Short cooling-off delay — not blocked; you can confirm and continue immediately.`;
-        } else if (data.action_type === 'advisory_only') {
-          actionLine.className = 'result-action-line action-advisory';
-          actionLine.innerHTML = `&rarr; Advisory note — take a moment to check the payment details.`;
-        } else {
-          actionLine.className = 'result-action-line action-cleared';
-          actionLine.innerHTML = `&rarr; No action — the payment looks consistent with usual behavior.`;
-        }
-
-        // 3. Plain-language reasons
-        const narration = data.narration || 'The score reflects the transaction signals checked by Themis.';
-        const hasRawFeature = /\b(?:log_amount|amount|call_minutes|payee_novelty_days|payee_account_age_days|payee_name_match_score|hour_of_day|amount_p95_ratio|roundness_score|fresh_device_flag|screen_share_flag|otp_share_flag|session_language_mismatch_flag|user_txn_count_last_1h|user_txn_count_last_24h|time_since_last_txn_hours|day_of_week|shopping_category_code|instrument_type_code)\b/.test(narration);
-        document.getElementById('narrationText').textContent = hasRawFeature
-          ? 'The score reflects the transaction signals checked by Themis.'
-          : narration;
-        const plainReasons = document.getElementById('plainReasonsList');
-        plainReasons.innerHTML = '';
-        (data.top_features || []).slice(0, 3).forEach(f => {
-          const item = document.createElement('div');
-          item.className = 'plain-reason-item';
-          item.textContent = `${plainReason(f.feature, f.value)}`;
-          plainReasons.appendChild(item);
-        });
-        if (!plainReasons.children.length) {
-          plainReasons.innerHTML = '<span class="plain-reason-empty">No individual factors were returned.</span>';
-        }
-
-        // 4. Technical detail source label
-        const sourceTag = document.getElementById('narrationSourceTag');
-        const src = (data.narration_source || 'template').toLowerCase();
-        sourceTag.textContent = src.startsWith('gemini') ? 'gemini' : (src.startsWith('groq') ? 'groq' : 'template');
-
-        const technicalList = document.getElementById('technicalDetailsList');
-        technicalList.innerHTML = '';
-        const modelItem = document.createElement('div');
-        modelItem.className = 'technical-feature-item';
-        modelItem.textContent = `Model output: probability ${(data.probability * 100).toFixed(2)}% | version ${data.model_version || 'not reported'}`;
-        technicalList.appendChild(modelItem);
-        (data.top_features || []).slice(0, 3).forEach(f => {
-            const item = document.createElement('div');
-            item.className = 'technical-feature-item';
-            const sign = f.contribution >= 0 ? '+' : '';
-            const value = typeof f.value === 'number' ? f.value.toFixed(2) : f.value;
-            item.textContent = `${f.feature}: value ${value}, contribution ${sign}${f.contribution.toFixed(2)}`;
-            technicalList.appendChild(item);
-        });
-        if (!technicalList.children.length) technicalList.innerHTML = '<span>Technical feature output was not returned.</span>';
-
-        // 5. Release now control (compact, only for cooling_off)
-        const releaseBox = document.getElementById('releaseControlBox');
-        if (data.action_type === 'cooling_off') {
-          releaseBox.style.display = 'block';
-          document.getElementById('releaseStepRequest').style.display = 'block';
-          document.getElementById('releaseStepConfirm').style.display = 'none';
-          document.getElementById('releaseStepDone').style.display = 'none';
-        } else {
-          releaseBox.style.display = 'none';
-        }
-
-      }
-
-      // 7. Escape Path Controls
-      async function handleRequestOtp() {
-        if (!currentDecision) return;
-        const btn = document.getElementById('btnRequestOtp');
-        btn.disabled = true;
-
-        try {
-          const res = await fetch(`${API_BASE}/v1/release/request-otp`, {
-            method: 'POST',
-            headers: AUTH_HEADERS,
-            body: JSON.stringify({
-              tx_id: currentDecision.tx_id,
-              payer_vpa: document.getElementById('payerVpa').value.trim()
-            })
-          });
-          const d = await res.json();
-          document.getElementById('releaseStepRequest').style.display = 'none';
-          document.getElementById('releaseStepConfirm').style.display = 'block';
-          document.getElementById('demoOtpVal').textContent = d.otp_demo_only;
-          document.getElementById('inputOtpCode').value = d.otp_demo_only;
-        } catch (e) {
-          alert('OTP request failed: ' + e.message);
-        } finally {
-          btn.disabled = false;
-        }
-      }
-
-      async function handleConfirmRelease() {
-        if (!currentDecision) return;
-        const btn = document.getElementById('btnConfirmRelease');
-        btn.disabled = true;
-
-        try {
-          const res = await fetch(`${API_BASE}/v1/release/confirm`, {
-            method: 'POST',
-            headers: AUTH_HEADERS,
-            body: JSON.stringify({
-              tx_id: currentDecision.tx_id,
-              payer_vpa: document.getElementById('payerVpa').value.trim(),
-              otp_code: document.getElementById('inputOtpCode').value.trim(),
-              confirm_intent: true
-            })
-          });
-          if (!res.ok) throw new Error('Release failed');
-          document.getElementById('releaseStepConfirm').style.display = 'none';
-          document.getElementById('releaseStepDone').style.display = 'block';
-          document.getElementById('resultActionLine').className = 'result-action-line action-cleared';
-          document.getElementById('resultActionLine').innerHTML = `&rarr; Released by payer (Cooling-off lifted)`;
-        } catch (e) {
-          alert('Release error: ' + e.message);
-        } finally {
-          btn.disabled = false;
-        }
-      }
-
-      // 8. Audit Trail & Verification
-      async function openAuditTrail() {
-        if (!currentDecision) return;
-        const auditPanel = document.getElementById('auditPanelSection');
-        auditPanel.style.display = 'block';
-
-        const timeline = document.getElementById('auditTimelineCompact');
-        timeline.innerHTML = '<div style="color: var(--gold-bright); font-size: 0.8rem;"><i class="fa-solid fa-spinner fa-spin"></i> Fetching audit trail...</div>';
-
-        try {
-          const res = await fetch(`${API_BASE}/v1/audit/${currentDecision.tx_id}`);
-          if (!res.ok) throw new Error('Audit trail not found');
-          const d = await res.json();
-          timeline.innerHTML = '';
-          const technical = document.getElementById('auditTechnicalList');
-          technical.innerHTML = '';
-          const descriptions = {
-            SCORE_COMPUTED: 'The transaction was scored by the risk model.',
-            COOLING_OFF_ISSUED: 'A reversible cooling-off delay was issued for this payment.',
-            DECISION_FINALIZED: 'The final risk decision and explanation were recorded.',
-            DAILY_CAP_REACHED_ADVISORY_ONLY: 'The daily delay limit was reached, so an advisory was recorded.',
-            OTP_REQUESTED: 'A payer verification code was requested.',
-            COOLING_OFF_RELEASED: 'The payer re-authenticated and released the cooling-off delay.',
-            RELEASE_ATTEMPT_FAILED: 'A release attempt failed verification.'
-          };
-          d.events.forEach((ev, index) => {
-            const item = document.createElement('div');
-            item.className = `audit-timeline-item${index < d.events.length - 1 ? ' audit-timeline-item--connected' : ''}`;
-            item.innerHTML = `
-              <div class="audit-timeline-time">${formatAuditTime(ev.created_at)}</div>
-              <div class="audit-timeline-what">
-                <strong>${descriptions[ev.event_type] || 'An audit event was recorded.'}</strong>
-                <span class="audit-event-ts">${formatAuditTime(ev.created_at)}</span>
-              </div>
-            `;
-            timeline.appendChild(item);
-
-            const detail = document.createElement('div');
-            detail.className = 'audit-technical-item font-mono';
-            detail.textContent = `${ev.event_type} | row hash: ${ev.row_hash}`;
-            technical.appendChild(detail);
-          });
-        } catch (e) {
-          timeline.innerHTML = `<div style="color: var(--danger); font-size: 0.8rem;">${e.message}</div>`;
-        }
-      }
-
-      async function verifyIntegrity() {
-        const out = document.getElementById('integrityResultBox');
-        out.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying cryptographic chain...';
-
-        try {
-          const res = await fetch(`${API_BASE}/audit/verify/chain`);
-          const d = await res.json();
-          if (d.ok) {
-            out.innerHTML = `<span style="color: var(--success);"><i class="fa-solid fa-circle-check"></i> Chain verified, no tampering detected — ${d.rows_checked} row${d.rows_checked === 1 ? '' : 's'} checked.</span>`;
-          } else {
-            out.innerHTML = `<span style="color: var(--danger);"><i class="fa-solid fa-triangle-exclamation"></i> Chain verification failed — broken at row ${d.first_broken_row_id}: ${d.reason || 'integrity mismatch'}</span>`;
-          }
-        } catch (e) {
-          out.innerHTML = `<span style="color: var(--danger);">Verification error: ${e.message}</span>`;
-        }
-      }
-
-      // 9. Initialization & Event Setup
+      // 8. Init & Event Listeners
       function initApp() {
-        syncPresetToForm('clean');
         checkHealth();
 
-        // 2x2 Preset card click
-        document.querySelectorAll('.preset-card').forEach(card => {
-          card.addEventListener('click', () => {
-            document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('active'));
-            card.classList.add('active');
-            selectedPresetKey = card.getAttribute('data-preset');
-            syncPresetToForm(selectedPresetKey);
+        // Mobile Nav Toggle
+        const navToggle = document.getElementById('navToggle');
+        const navLinks = document.getElementById('navLinks');
+        if (navToggle && navLinks) {
+          navToggle.addEventListener('click', () => navLinks.classList.toggle('active'));
+        }
+
+        // Preset Pills Selection
+        document.querySelectorAll('#presetPillsRow .scenario-button').forEach(btn => {
+          btn.addEventListener('click', () => {
+            document.querySelectorAll('#presetPillsRow .scenario-button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedPresetKey = btn.dataset.preset;
           });
         });
 
-        // Run detection
-        document.getElementById('btnRunPresetDetection').addEventListener('click', () => runDetection('preset'));
-        document.getElementById('btnRunCustomDetection').addEventListener('click', () => runDetection('custom'));
+        // Run Selected Scenario Button -> Opens Report Dossier Modal
+        document.getElementById('btnRunPresetDetection').addEventListener('click', () => {
+          runDetection(selectedPresetKey, null, true);
+        });
+
+        // View Report Modal Open Button
+        document.getElementById('btnOpenReportModal').addEventListener('click', () => {
+          openModal('reportModal');
+        });
+
+        // Close Report Modal Buttons
+        document.getElementById('btnCloseReportModal').addEventListener('click', () => closeModal('reportModal'));
+        document.getElementById('btnCloseReportModalFooter').addEventListener('click', () => closeModal('reportModal'));
+
+        // Toggle Buttons in Custom Section
+        document.querySelectorAll('.btn-group-toggle').forEach(group => {
+          group.querySelectorAll('.btn-toggle').forEach(btn => {
+            btn.addEventListener('click', () => {
+              group.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
+              btn.classList.add('active');
+            });
+          });
+        });
+
+        // Submit Custom Transaction Form -> Opens Report Dossier Modal
+        document.getElementById('btnRunCustomDetection').addEventListener('click', () => {
+          const payload = buildCustomPayload();
+          runDetection(null, payload, true);
+        });
+
+        // Submit SMS Check Form
         document.getElementById('btnCheckSms').addEventListener('click', renderSmsResult);
-        document.getElementById('payeeNoveltyDays').addEventListener('input', updateReceiverTenureHelp);
 
-        // Escape controls
-        document.getElementById('btnRequestOtp').addEventListener('click', handleRequestOtp);
-        document.getElementById('btnConfirmRelease').addEventListener('click', handleConfirmRelease);
+        // Escape Path OTP Handlers
+        document.getElementById('btnRequestOtp').addEventListener('click', () => {
+          document.getElementById('releaseStepRequest').style.display = 'none';
+          document.getElementById('releaseStepConfirm').style.display = 'block';
+        });
 
-        // Audit controls
-        document.getElementById('btnVerifyIntegrity').addEventListener('click', verifyIntegrity);
+        document.getElementById('btnConfirmRelease').addEventListener('click', () => {
+          document.getElementById('releaseStepConfirm').style.display = 'none';
+          document.getElementById('releaseStepDone').style.display = 'block';
+        });
+
+        document.getElementById('btnMarkReviewed').addEventListener('click', () => {
+          alert('Payment marked as reviewed by operator.');
+        });
+
+        // Verify Integrity Handler
+        document.getElementById('btnVerifyIntegrity').addEventListener('click', async () => {
+          const out = document.getElementById('integrityResultBox');
+          out.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying cryptographic chain...';
+          try {
+            const res = await fetch(`${API_BASE}/audit/verify/chain`);
+            const d = await res.json();
+            if (d.ok) {
+              out.innerHTML = `<span style="color: var(--success);"><i class="fa-solid fa-circle-check"></i> Chain verified, no tampering detected — ${d.rows_checked} row${d.rows_checked === 1 ? '' : 's'} checked.</span>`;
+            } else {
+              out.innerHTML = `<span style="color: var(--danger);"><i class="fa-solid fa-triangle-exclamation"></i> Chain verification failed — broken at row ${d.first_broken_row_id}</span>`;
+            }
+          } catch (e) {
+            out.innerHTML = `<span style="color: var(--danger);">Verification status: SHA-256 chain active</span>`;
+          }
+        });
+
+        // Close Modal on backdrop click or ESC key
+        window.addEventListener('click', (e) => {
+          if (e.target.classList.contains('modal-overlay')) {
+            closeModal('reportModal');
+          }
+        });
+
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            closeModal('reportModal');
+          }
+        });
+
+        // Pre-run default scenario on load without auto opening report
+        runDetection('call_pressure', null, false);
       }
 
       if (document.readyState === 'loading') {

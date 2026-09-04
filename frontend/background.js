@@ -13,6 +13,7 @@
   'use strict';
 
   function initWutheringBackground() {
+    return; // Background canvas animation disabled
     let canvas = document.getElementById('wutheringCanvas');
     if (!canvas) {
       canvas = document.createElement('canvas');
@@ -53,21 +54,21 @@
 
     // ── 15 Thread Base Configurations Across Full Viewport Height (0.05 - 0.95) ──
     const stringConfigs = [
-      { baseY: 0.05, amp: 42, freq: 0.0016, harm: 0.0032, color: 'rgba(255, 215, 0, 0.35)', glow: 'rgba(245, 158, 11, 0.20)', width: 1.4 },
-      { baseY: 0.12, amp: 55, freq: 0.0014, harm: 0.0028, color: 'rgba(245, 158, 11, 0.30)', glow: 'rgba(217, 119, 6, 0.18)', width: 1.3 },
-      { baseY: 0.19, amp: 70, freq: 0.0012, harm: 0.0024, color: 'rgba(255, 235, 140, 0.42)', glow: 'rgba(255, 215, 0, 0.26)', width: 1.8 },
-      { baseY: 0.27, amp: 85, freq: 0.0011, harm: 0.0022, color: 'rgba(251, 191, 36, 0.34)', glow: 'rgba(245, 158, 11, 0.22)', width: 1.5 },
-      { baseY: 0.34, amp: 65, freq: 0.0013, harm: 0.0027, color: 'rgba(255, 215, 0, 0.32)', glow: 'rgba(245, 158, 11, 0.18)', width: 1.4 },
-      { baseY: 0.41, amp: 95, freq: 0.0010, harm: 0.0020, color: 'rgba(255, 225, 110, 0.40)', glow: 'rgba(255, 215, 0, 0.25)', width: 1.9 },
-      { baseY: 0.48, amp: 60, freq: 0.0009, harm: 0.0018, color: 'rgba(56, 189, 248, 0.22)', glow: 'rgba(14, 165, 233, 0.15)', width: 1.2 }, // Cyan accent
-      { baseY: 0.55, amp: 90, freq: 0.0012, harm: 0.0025, color: 'rgba(245, 158, 11, 0.36)', glow: 'rgba(217, 119, 6, 0.20)', width: 1.6 },
-      { baseY: 0.62, amp: 105, freq: 0.0010, harm: 0.0019, color: 'rgba(255, 230, 120, 0.44)', glow: 'rgba(255, 215, 0, 0.28)', width: 1.8 },
-      { baseY: 0.69, amp: 75, freq: 0.0014, harm: 0.0029, color: 'rgba(251, 191, 36, 0.32)', glow: 'rgba(245, 158, 11, 0.18)', width: 1.4 },
-      { baseY: 0.76, amp: 55, freq: 0.0009, harm: 0.0019, color: 'rgba(14, 165, 233, 0.20)', glow: 'rgba(37, 99, 235, 0.14)', width: 1.1 }, // Electric blue accent
-      { baseY: 0.82, amp: 68, freq: 0.0015, harm: 0.0031, color: 'rgba(217, 119, 6, 0.30)', glow: 'rgba(180, 83, 9, 0.16)', width: 1.3 },
-      { baseY: 0.88, amp: 80, freq: 0.0013, harm: 0.0026, color: 'rgba(255, 215, 0, 0.36)', glow: 'rgba(245, 158, 11, 0.22)', width: 1.6 },
-      { baseY: 0.93, amp: 50, freq: 0.0017, harm: 0.0035, color: 'rgba(255, 220, 100, 0.30)', glow: 'rgba(245, 158, 11, 0.18)', width: 1.3 },
-      { baseY: 0.98, amp: 38, freq: 0.0018, harm: 0.0038, color: 'rgba(245, 158, 11, 0.25)', glow: 'rgba(217, 119, 6, 0.15)', width: 1.2 }
+      { baseY: 0.05, amp: 42, freq: 0.0016, harm: 0.0032, color: 'rgba(0, 174, 239, 0.14)', glow: 'rgba(0, 127, 196, 0.08)', width: 1.4 },
+      { baseY: 0.12, amp: 55, freq: 0.0014, harm: 0.0028, color: 'rgba(0, 57, 93, 0.10)',  glow: 'rgba(0, 57, 93, 0.06)',   width: 1.3 },
+      { baseY: 0.19, amp: 70, freq: 0.0012, harm: 0.0024, color: 'rgba(0, 174, 239, 0.18)', glow: 'rgba(0, 174, 239, 0.10)', width: 1.8 },
+      { baseY: 0.27, amp: 85, freq: 0.0011, harm: 0.0022, color: 'rgba(0, 127, 196, 0.13)', glow: 'rgba(0, 127, 196, 0.08)', width: 1.5 },
+      { baseY: 0.34, amp: 65, freq: 0.0013, harm: 0.0027, color: 'rgba(0, 174, 239, 0.12)', glow: 'rgba(0, 174, 239, 0.07)', width: 1.4 },
+      { baseY: 0.41, amp: 95, freq: 0.0010, harm: 0.0020, color: 'rgba(0, 174, 239, 0.16)', glow: 'rgba(0, 174, 239, 0.09)', width: 1.9 },
+      { baseY: 0.48, amp: 60, freq: 0.0009, harm: 0.0018, color: 'rgba(0, 57, 93, 0.08)',   glow: 'rgba(0, 57, 93, 0.05)',   width: 1.2 },
+      { baseY: 0.55, amp: 90, freq: 0.0012, harm: 0.0025, color: 'rgba(0, 127, 196, 0.15)', glow: 'rgba(0, 127, 196, 0.08)', width: 1.6 },
+      { baseY: 0.62, amp: 105, freq: 0.0010, harm: 0.0019, color: 'rgba(0, 174, 239, 0.20)', glow: 'rgba(0, 174, 239, 0.11)', width: 1.8 },
+      { baseY: 0.69, amp: 75, freq: 0.0014, harm: 0.0029, color: 'rgba(0, 127, 196, 0.12)', glow: 'rgba(0, 127, 196, 0.07)', width: 1.4 },
+      { baseY: 0.76, amp: 55, freq: 0.0009, harm: 0.0019, color: 'rgba(0, 57, 93, 0.09)',   glow: 'rgba(0, 57, 93, 0.05)',   width: 1.1 },
+      { baseY: 0.82, amp: 68, freq: 0.0015, harm: 0.0031, color: 'rgba(0, 174, 239, 0.13)', glow: 'rgba(0, 127, 196, 0.07)', width: 1.3 },
+      { baseY: 0.88, amp: 80, freq: 0.0013, harm: 0.0026, color: 'rgba(0, 127, 196, 0.16)', glow: 'rgba(0, 174, 239, 0.09)', width: 1.6 },
+      { baseY: 0.93, amp: 50, freq: 0.0017, harm: 0.0035, color: 'rgba(0, 174, 239, 0.11)', glow: 'rgba(0, 174, 239, 0.06)', width: 1.3 },
+      { baseY: 0.98, amp: 38, freq: 0.0018, harm: 0.0038, color: 'rgba(0, 57, 93, 0.08)',   glow: 'rgba(0, 57, 93, 0.04)',   width: 1.2 }
     ];
 
     const MODES = ['pulsating', 'current', 'drift'];
@@ -118,7 +119,7 @@
         maxAlpha: Math.random() * 0.35 + 0.55,
         pulseSpeed: Math.random() * 0.02 + 0.008,
         pulseOffset: Math.random() * Math.PI * 2,
-        color: Math.random() > 0.3 ? '#ffd700' : (Math.random() > 0.5 ? '#f59e0b' : '#38bdf8')
+        color: Math.random() > 0.3 ? 'rgba(0, 174, 239, 0.5)' : (Math.random() > 0.5 ? 'rgba(0, 127, 196, 0.4)' : 'rgba(0, 57, 93, 0.3)')
       });
     }
 
@@ -305,20 +306,20 @@
             const lastPt = cometPts[cometPts.length - 1];
 
             // Linear gradient along the comet path:
-            // Tail (soft fade to 0) -> Mid trail -> Head (maximum white-gold brightness)
+            // Tail (soft fade to 0) -> Mid trail -> Head (maximum blue brightness)
             const grad = ctx.createLinearGradient(firstPt.x, firstPt.y, lastPt.x, lastPt.y);
-            grad.addColorStop(0.0, 'rgba(245, 158, 11, 0.0)');
-            grad.addColorStop(0.4, `rgba(245, 158, 11, ${0.25 * sweepAlpha})`);
-            grad.addColorStop(0.75, `rgba(255, 220, 100, ${0.65 * sweepAlpha})`);
-            grad.addColorStop(0.95, `rgba(255, 245, 180, ${0.90 * sweepAlpha})`);
-            grad.addColorStop(1.0, `rgba(255, 255, 245, ${1.0 * sweepAlpha})`);
+            grad.addColorStop(0.0, 'rgba(0, 174, 239, 0.0)');
+            grad.addColorStop(0.4, `rgba(0, 174, 239, ${0.25 * sweepAlpha})`);
+            grad.addColorStop(0.75, `rgba(0, 127, 196, ${0.65 * sweepAlpha})`);
+            grad.addColorStop(0.95, `rgba(0, 174, 239, ${0.85 * sweepAlpha})`);
+            grad.addColorStop(1.0, `rgba(180, 230, 250, ${1.0 * sweepAlpha})`);
 
             // Primary trailing glow stroke
             ctx.save();
             ctx.beginPath();
             ctx.lineWidth = th.width * 2.1;
             ctx.strokeStyle = grad;
-            ctx.shadowColor = '#ffd700';
+            ctx.shadowColor = '#00AEEF';
             ctx.shadowBlur = 18;
 
             ctx.moveTo(cometPts[0].x, cometPts[0].y);
@@ -331,8 +332,8 @@
             const frontIndex = Math.max(0, cometPts.length - 5);
             ctx.beginPath();
             ctx.lineWidth = th.width * 1.2;
-            ctx.strokeStyle = `rgba(255, 255, 255, ${0.92 * sweepAlpha})`;
-            ctx.shadowColor = '#ffffff';
+            ctx.strokeStyle = `rgba(200, 240, 255, ${0.85 * sweepAlpha})`;
+            ctx.shadowColor = '#00AEEF';
             ctx.shadowBlur = 10;
 
             ctx.moveTo(cometPts[frontIndex].x, cometPts[frontIndex].y);
