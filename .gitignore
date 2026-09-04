@@ -9,4 +9,4 @@ requirements_check.txt
 .claude/
 skills-lock.json
 python
-*.sqlite3
+.env
