@@ -40,7 +40,7 @@
 
       <div class="nav-status" id="navHealthPill">
         <span class="pulse-dot" id="navHealthDot"></span>
-        <span id="navHealthText">Checking backend...</span>
+        <span id="navHealthText">Waking up the server — first load can take a minute</span>
       </div>
     </div>
   </nav>
@@ -112,45 +112,14 @@
       navToggle.addEventListener('click', () => navLinks.classList.toggle('active'));
     }
 
-    // Health Status Check with Auto-Retry
-    let healthTimer = null;
-    let healthRetryStartedAt = Date.now();
-    async function checkHealth() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const apiBase = urlParams.get('api') || sessionStorage.getItem('themis_api_base') || 'https://themis-razorpay-buildathon.onrender.com';
+    // Help keeps the server wake-up message visible while the Console presents demo mode.
+    function checkHealth() {
       const dot = document.getElementById('navHealthDot');
       const text = document.getElementById('navHealthText');
       const pill = document.getElementById('navHealthPill');
-
-      try {
-        const res = await fetch(`${apiBase}/health`, { method: 'GET' });
-        if (!res.ok) throw new Error('Health check failed');
-        const data = await res.json();
-        if (data.is_dummy_model === false) {
-          text.textContent = 'Model loaded';
-        } else {
-          text.textContent = 'Model loaded';
-        }
-        dot.className = 'pulse-dot';
-        pill.className = 'nav-status';
-        healthRetryStartedAt = Date.now();
-
-        if (healthTimer) clearTimeout(healthTimer);
-        healthTimer = setTimeout(checkHealth, 30000);
-      } catch (e) {
-        if (Date.now() - healthRetryStartedAt < 60000) {
-          text.textContent = 'Waking up the server — first load can take a minute';
-          dot.className = 'pulse-dot waking';
-          pill.className = 'nav-status waking';
-        } else {
-          text.textContent = 'Backend unreachable';
-          dot.className = 'pulse-dot danger';
-          pill.className = 'nav-status offline';
-        }
-
-        if (healthTimer) clearTimeout(healthTimer);
-        healthTimer = setTimeout(checkHealth, 4000);
-      }
+      text.textContent = 'Waking up the server — first load can take a minute';
+      dot.className = 'pulse-dot waking';
+      pill.className = 'nav-status waking';
     }
     checkHealth();
   </script>
